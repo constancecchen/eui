@@ -3,6 +3,10 @@
 
   &:not(.euiRadio--noLabel) .euiRadio__input {
     @include euiScreenReaderOnly;
+    // Because this input is still focusable, it causes the screen-reader outline
+    // to extend to the position of the screen-reader element.
+    // So we must position it against it's own bounds.
+    left: 0;
   }
 
   .euiRadio__input {
@@ -11,7 +15,7 @@
       padding-left: ($euiRadioSize * 1.5);
       line-height: $euiSizeL;
       font-size: $euiFontSizeS;
-      min-height: $euiFontSizeS; // In case the label is just white space
+      min-height: $euiRadioSize; // In case the label is just white space
       position: relative;
       z-index: 2;
       cursor: pointer;
@@ -52,8 +56,7 @@
       }
     }
 
-    &:focus,
-    &:active:not(:disabled) {
+    &:focus {
       + .euiRadio__circle {
         @include euiCustomControlFocused;
       }

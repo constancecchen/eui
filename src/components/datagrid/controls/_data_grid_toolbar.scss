@@ -6,12 +6,15 @@
   padding: $euiSizeXS $euiSizeXS $euiSizeXS 0;
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 
 .euiDataGrid__rightControls {
+  // These **should** just be icon buttons and so we'll restrict them to not wrap lines
+  white-space: nowrap;
+
   // Keep this right-aligned if hasRoomForGridControls is hiding dataControls
   &:only-child {
-    margin-right: 0;
     margin-left: auto;
   }
 

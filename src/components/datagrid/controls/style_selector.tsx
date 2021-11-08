@@ -77,7 +77,7 @@ export const useDataGridStyleSelector = (
       closePopover={() => setIsOpen(false)}
       anchorPosition="downRight"
       panelPaddingSize="s"
-      panelClassName="euiDataGrid__stylePopoverPanel"
+      panelClassName="euiDataGrid__displayPopoverPanel"
       button={
         <EuiToolTip content={buttonLabel} delay="long">
           <EuiButtonIcon

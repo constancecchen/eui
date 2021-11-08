@@ -12,6 +12,7 @@ import { EuiI18n, useEuiI18n } from '../../i18n';
 import { EuiPopover } from '../../popover';
 import { EuiButtonIcon, EuiButtonGroup } from '../../button';
 import { EuiFormRow } from '../../form';
+import { EuiToolTip } from '../../tool_tip';
 
 export const startingStyles: EuiDataGridStyle = {
   cellPadding: 'm',
@@ -64,6 +65,11 @@ export const useDataGridStyleSelector = (
     ...userGridStyles,
   };
 
+  const buttonLabel = useEuiI18n(
+    'euiStyleSelector.buttonText',
+    'Display options'
+  );
+
   const styleSelector = (
     <EuiPopover
       data-test-subj="dataGridStyleSelectorPopover"
@@ -73,15 +79,17 @@ export const useDataGridStyleSelector = (
       panelPaddingSize="s"
       panelClassName="euiDataGrid__stylePopoverPanel"
       button={
-        <EuiButtonIcon
-          size="xs"
-          iconType={`tableDensity${capitalizeDensityString(gridDensity)}`}
-          className="euiDataGrid__controlBtn"
-          color="text"
-          data-test-subj="dataGridStyleSelectorButton"
-          onClick={() => setIsOpen(!isOpen)}
-          aria-label={useEuiI18n('euiStyleSelector.buttonText', 'Grid display')}
-        />
+        <EuiToolTip content={buttonLabel} delay="long">
+          <EuiButtonIcon
+            size="xs"
+            iconType={`tableDensity${capitalizeDensityString(gridDensity)}`}
+            className="euiDataGrid__controlBtn"
+            color="text"
+            data-test-subj="dataGridStyleSelectorButton"
+            onClick={() => setIsOpen(!isOpen)}
+            aria-label={buttonLabel}
+          />
+        </EuiToolTip>
       }
     >
       <EuiI18n

@@ -21,7 +21,7 @@ exports[`useDataGridStyleSelector styleSelector renders a toolbar button/popover
     hasArrow={true}
     isOpen={false}
     ownFocus={true}
-    panelClassName="euiDataGrid__controlPopover"
+    panelClassName="euiDataGrid__stylePopoverPanel"
     panelPaddingSize="s"
   >
     <EuiI18n

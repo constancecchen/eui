@@ -6,7 +6,7 @@
  * Side Public License, v 1.
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { EuiButtonIcon } from '../../button';
 import { useEuiI18n } from '../../i18n';
 import {
@@ -48,11 +48,18 @@ export const EuiDataGridToolbar = ({
     ? true
     : gridWidth > minSizeForControls || isFullScreen;
 
-  // need to safely access those Web APIs
-  if (typeof document !== 'undefined') {
-    // When data grid is full screen, we add a class to the body to remove the extra scrollbar
-    document.body.classList.toggle(GRID_IS_FULLSCREEN_CLASSNAME, isFullScreen);
-  }
+  useEffect(() => {
+    // When data grid is full screen, we add a class to the body to remove the extra scrollbar and stay above any fixed headers
+    if (isFullScreen && typeof document !== 'undefined') {
+      document.body.classList.add(GRID_IS_FULLSCREEN_CLASSNAME);
+
+      return () => {
+        if (typeof document !== 'undefined') {
+          document.body.classList.remove(GRID_IS_FULLSCREEN_CLASSNAME);
+        }
+      };
+    }
+  }, [isFullScreen]);
 
   const fullScreenSelector = (
     <EuiButtonIcon

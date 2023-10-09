@@ -117,7 +117,7 @@
     "@cypress/webpack-dev-server": "^1.7.0",
     "@elastic/charts": "^59.1.0",
     "@elastic/datemath": "^5.0.3",
-    "@emotion/babel-preset-css-prop": "^11.11.0",
+    "@emotion/babel-plugin": "^11.11.0",
     "@emotion/cache": "^11.11.0",
     "@emotion/css": "^11.11.0",
     "@emotion/eslint-plugin": "^11.11.0",

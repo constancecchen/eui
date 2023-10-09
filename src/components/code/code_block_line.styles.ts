@@ -13,9 +13,10 @@
  * Side Public License, v 1.
  */
 
-import { css } from '@emotion/css';
+// import { css } from '@emotion/css';
 import { euiBackgroundColor } from '../../global_styling';
 import { UseEuiTheme } from '../../services';
+import { css } from '../../services/emotion/css';
 
 // Note: These styles must be in a separate file due to using `css` from `@emotion/css`
 // (i.e., applying styles in vanilla JS / directly to DOM nodes instead of React)

@@ -4,6 +4,7 @@ import { useLocation } from 'react-router-dom';
 import { css } from '@emotion/css';
 
 import { EuiButtonIcon, useEuiTheme, logicalCSS } from '../../../../src';
+// import { css } from '../../../../src/services/emotion/css';
 
 export const useHeadingAnchorLinks = () => {
   const { pathname } = useLocation();

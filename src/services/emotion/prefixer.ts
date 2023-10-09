@@ -45,12 +45,11 @@ const prefix = (value: Element['value'], length: Element['length']): string => {
     // color-adjust
     case 5103:
       return WEBKIT + 'print-' + value + value;
-    // text-decoration, filter, clip-path, backface-visibility, column, box-decoration-break
+    // text-decoration, filter, clip-path, backface-visibility, box-decoration-break
     case 5572:
     case 6356:
     case 5844:
     case 3191:
-    case 6645:
     case 3005:
     // mask, mask-image, mask-(mode|clip|size), mask-(repeat|origin), mask-position, mask-composite,
     case 6391:

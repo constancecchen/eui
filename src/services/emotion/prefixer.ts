@@ -59,13 +59,8 @@ const prefix = (value: Element['value'], length: Element['length']): string => {
     case 6135:
     case 4599:
     case 4855:
-    // background-clip, columns, column-(count|fill|gap|rule|rule-color|rule-style|rule-width|span|width)
+    // background-clip
     case 4215:
-    case 6389:
-    case 5109:
-    case 5365:
-    case 5621:
-    case 3829:
       return WEBKIT + value + value;
     // appearance, user-select, hyphens, text-size-adjust
     case 5349:

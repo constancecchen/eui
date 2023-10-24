@@ -169,7 +169,7 @@ word
 
 wordChar
   = alnum
-  / [-_*:/]
+  / [^:()"]
   / escapedChar
   / extendedGlyph
 

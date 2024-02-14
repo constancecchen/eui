@@ -9,11 +9,7 @@
 import React, { Component, HTMLAttributes, ReactNode } from 'react';
 import classNames from 'classnames';
 
-import {
-  htmlIdGenerator,
-  withEuiTheme,
-  WithEuiThemeProps,
-} from '../../services';
+import { htmlIdGenerator, RenderWithStyleMemoizer } from '../../services';
 import { CommonProps } from '../common';
 import { EuiLoadingSpinner } from '../loading';
 import type { EuiButtonIconProps } from '../button';
@@ -118,8 +114,8 @@ type EuiAccordionState = {
   isOpen: boolean;
 };
 
-export class EuiAccordionClass extends Component<
-  WithEuiThemeProps & EuiAccordionProps,
+export class EuiAccordion extends Component<
+  EuiAccordionProps,
   EuiAccordionState
 > {
   static defaultProps = {
@@ -210,7 +206,6 @@ export class EuiAccordionClass extends Component<
       isLoading,
       isLoadingMessage,
       isDisabled,
-      theme,
       ...rest
     } = this.props;
 
@@ -220,49 +215,55 @@ export class EuiAccordionClass extends Component<
       className
     );
 
-    const styles = euiAccordionStyles(theme);
-    const cssStyles = [
-      styles.euiAccordion,
-      borders !== 'none' && styles.borders.borders,
-      borders !== 'none' && styles.borders[borders!],
-    ];
-
     const buttonId = buttonProps?.id ?? this.generatedId;
 
     return (
-      <Element className={classes} css={cssStyles} {...rest}>
-        <EuiAccordionTrigger
-          ariaControlsId={id}
-          buttonId={buttonId}
-          // Force button element to be a legend if the element is a fieldset
-          buttonElement={Element === 'fieldset' ? 'legend' : buttonElement}
-          buttonClassName={buttonClassName}
-          buttonContent={buttonContent}
-          buttonContentClassName={buttonContentClassName}
-          buttonProps={buttonProps}
-          arrowProps={arrowProps}
-          arrowDisplay={arrowDisplay}
-          isDisabled={isDisabled}
-          isOpen={this.isOpen}
-          onToggle={this.onToggle}
-          extraAction={isLoading ? <EuiLoadingSpinner /> : extraAction}
-        />
+      <RenderWithStyleMemoizer>
+        {(memoizeStyles) => {
+          const styles = memoizeStyles(euiAccordionStyles);
+          const cssStyles = [
+            styles.euiAccordion,
+            borders !== 'none' && styles.borders.borders,
+            borders !== 'none' && styles.borders[borders!],
+          ];
 
-        <EuiAccordionChildren
-          role={role}
-          id={id}
-          aria-labelledby={buttonId}
-          paddingSize={paddingSize}
-          isLoading={isLoading}
-          isLoadingMessage={isLoadingMessage}
-          isOpen={this.isOpen}
-          accordionChildrenRef={this.accordionChildrenRef}
-        >
-          {children}
-        </EuiAccordionChildren>
-      </Element>
+          return (
+            <Element className={classes} css={cssStyles} {...rest}>
+              <EuiAccordionTrigger
+                ariaControlsId={id}
+                buttonId={buttonId}
+                // Force button element to be a legend if the element is a fieldset
+                buttonElement={
+                  Element === 'fieldset' ? 'legend' : buttonElement
+                }
+                buttonClassName={buttonClassName}
+                buttonContent={buttonContent}
+                buttonContentClassName={buttonContentClassName}
+                buttonProps={buttonProps}
+                arrowProps={arrowProps}
+                arrowDisplay={arrowDisplay}
+                isDisabled={isDisabled}
+                isOpen={this.isOpen}
+                onToggle={this.onToggle}
+                extraAction={isLoading ? <EuiLoadingSpinner /> : extraAction}
+              />
+
+              <EuiAccordionChildren
+                role={role}
+                id={id}
+                aria-labelledby={buttonId}
+                paddingSize={paddingSize}
+                isLoading={isLoading}
+                isLoadingMessage={isLoadingMessage}
+                isOpen={this.isOpen}
+                accordionChildrenRef={this.accordionChildrenRef}
+              >
+                {children}
+              </EuiAccordionChildren>
+            </Element>
+          );
+        }}
+      </RenderWithStyleMemoizer>
     );
   }
 }
-
-export const EuiAccordion = withEuiTheme<EuiAccordionProps>(EuiAccordionClass);

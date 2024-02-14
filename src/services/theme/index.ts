@@ -26,6 +26,7 @@ export {
   useEuiMemoizedStyles,
   withEuiStylesMemoizer,
   type WithEuiStylesMemoizerProps,
+  RenderWithStyleMemoizer,
 } from './style_memoization';
 export { getEuiDevProviderWarning, setEuiDevProviderWarning } from './warning';
 export {

@@ -131,3 +131,14 @@ export const withEuiStylesMemoizer = <T extends {} = {}>(
 
   return WithEuiStylesMemoizer;
 };
+
+/**
+ * Render prop util for simpler class components
+ */
+export const RenderWithStyleMemoizer = ({
+  children,
+}: {
+  children: (memoizer: typeof useEuiMemoizedStyles) => React.ReactElement;
+}) => {
+  return children(useEuiMemoizedStyles);
+};

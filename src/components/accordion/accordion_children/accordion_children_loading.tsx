@@ -8,12 +8,16 @@
 
 import React, { FunctionComponent } from 'react';
 
-import { useEuiTheme } from '../../../services';
+import { useEuiMemoizedStyles, UseEuiTheme } from '../../../services';
 import { EuiI18n } from '../../i18n';
 import { EuiText } from '../../text';
 import { EuiLoadingSpinner } from '../../loading';
 
 import { EuiAccordionProps } from '../accordion';
+
+const euiAccordionChildrenLoadingStyles = ({ euiTheme }: UseEuiTheme) => ({
+  marginInlineEnd: euiTheme.size.xs,
+});
 
 type _EuiAccordionChildrenLoadingProps = Pick<
   EuiAccordionProps,
@@ -23,14 +27,11 @@ type _EuiAccordionChildrenLoadingProps = Pick<
 export const EuiAccordionChildrenLoading: FunctionComponent<
   _EuiAccordionChildrenLoadingProps
 > = ({ isLoadingMessage }) => {
-  const { euiTheme } = useEuiTheme();
+  const styles = useEuiMemoizedStyles(euiAccordionChildrenLoadingStyles);
 
   return (
     <>
-      <EuiLoadingSpinner
-        className="euiAccordion__spinner"
-        css={{ marginInlineEnd: euiTheme.size.xs }}
-      />
+      <EuiLoadingSpinner className="euiAccordion__spinner" css={styles} />
       <EuiText size="s">
         <p>
           {isLoadingMessage !== true ? (

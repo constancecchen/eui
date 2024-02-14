@@ -6,7 +6,7 @@
  * Side Public License, v 1.
  */
 
-import React, { FunctionComponent, MouseEventHandler } from 'react';
+import React, { FunctionComponent, MouseEventHandler, useMemo } from 'react';
 
 import { EuiAccordionProps } from '../accordion';
 import { EuiAccordionButton } from './accordion_button';
@@ -52,55 +52,53 @@ export const EuiAccordionTrigger: FunctionComponent<
   const arrowDisplay =
     _arrowDisplay === 'none' && !buttonIsInteractive ? 'left' : _arrowDisplay;
 
-  const arrow = (
-    <EuiAccordionArrow
-      arrowDisplay={arrowDisplay}
-      arrowProps={arrowProps}
-      isOpen={isOpen}
-      onClick={onToggle}
-      isDisabled={isDisabled}
-      aria-controls={ariaControlsId}
-      aria-expanded={isOpen}
-      aria-labelledby={buttonId}
-      tabIndex={buttonIsInteractive ? -1 : 0}
-    />
-  );
+  const passedArrowProps = {
+    arrowDisplay,
+    arrowProps,
+    isOpen,
+    onClick: onToggle,
+    isDisabled,
+    'aria-controls': ariaControlsId,
+    'aria-expanded': isOpen,
+    'aria-labelledby': buttonId,
+    tabIndex: buttonIsInteractive ? -1 : 0,
+  };
 
-  const button = (
-    <EuiAccordionButton
-      buttonElement={buttonElement}
-      buttonProps={buttonProps}
-      buttonClassName={buttonClassName}
-      buttonContentClassName={buttonContentClassName}
-      arrowDisplay={arrowDisplay}
-      isDisabled={isDisabled}
-      id={buttonId}
-      aria-controls={ariaControlsId}
-      aria-expanded={buttonIsInteractive ? isOpen : undefined} // `aria-expanded` is only a valid attribute on interactive controls - axe-core throws a violation otherwise
-      onClick={isDisabled ? undefined : onToggle}
-    >
-      {buttonContent}
-    </EuiAccordionButton>
-  );
+  const passedButtonProps = {
+    buttonElement,
+    buttonProps,
+    buttonClassName,
+    buttonContentClassName,
+    children: buttonContent,
+    arrowDisplay,
+    isDisabled,
+    id: buttonId,
+    'aria-controls': ariaControlsId,
+    // `aria-expanded` is only a valid attribute on interactive controls - axe-core throws a violation otherwise
+    'aria-expanded': buttonIsInteractive ? isOpen : undefined,
+    onClick: isDisabled ? undefined : onToggle,
+  };
 
-  const optionalAction = extraAction && (
-    <div
-      className="euiAccordion__optionalAction"
-      css={{ flexShrink: 0, label: 'euiAccordion' }}
-    >
-      {extraAction}
-    </div>
-  );
+  const optionalAction = useMemo(() => {
+    return extraAction ? (
+      <div
+        className="euiAccordion__optionalAction"
+        css={{ flexShrink: 0, label: 'euiAccordion' }}
+      >
+        {extraAction}
+      </div>
+    ) : null;
+  }, [extraAction]);
 
   return (
     <div
       className="euiAccordion__triggerWrapper"
       css={{ display: 'flex', alignItems: 'center' }}
     >
-      {arrowDisplay === 'left' && arrow}
-      {button}
+      {arrowDisplay === 'left' && <EuiAccordionArrow {...passedArrowProps} />}
+      <EuiAccordionButton {...passedButtonProps} />
       {optionalAction}
-      {arrowDisplay === 'right' && arrow}
+      {arrowDisplay === 'right' && <EuiAccordionArrow {...passedArrowProps} />}
     </div>
   );
 };

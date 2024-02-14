@@ -16,7 +16,7 @@ import React, {
 } from 'react';
 import classNames from 'classnames';
 
-import { useEuiTheme } from '../../../services';
+import { useEuiMemoizedStyles } from '../../../services';
 import { EuiResizeObserver } from '../../observer/resize_observer';
 
 import { EuiAccordionProps } from '../accordion';
@@ -53,8 +53,7 @@ export const EuiAccordionChildren: FunctionComponent<
     'euiAccordion__children-isLoading': isLoading,
   });
 
-  const euiTheme = useEuiTheme();
-  const styles = euiAccordionChildrenStyles(euiTheme);
+  const styles = useEuiMemoizedStyles(euiAccordionChildrenStyles);
   const cssStyles = [
     styles.euiAccordion__children,
     isLoading && styles.isLoading,
@@ -64,7 +63,7 @@ export const EuiAccordionChildren: FunctionComponent<
   /**
    * Wrapper
    */
-  const wrapperStyles = euiAccordionChildWrapperStyles(euiTheme);
+  const wrapperStyles = useEuiMemoizedStyles(euiAccordionChildWrapperStyles);
   const wrapperCssStyles = [
     wrapperStyles.euiAccordion__childWrapper,
     isOpen ? wrapperStyles.isOpen : wrapperStyles.isClosed,

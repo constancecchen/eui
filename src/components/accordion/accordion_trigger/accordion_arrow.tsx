@@ -9,7 +9,7 @@
 import React, { FunctionComponent } from 'react';
 import classNames from 'classnames';
 
-import { useEuiTheme } from '../../../services';
+import { useEuiMemoizedStyles } from '../../../services';
 import { EuiButtonIcon, EuiButtonIconPropsForButton } from '../../button';
 
 import { EuiAccordionProps } from '../accordion';
@@ -26,21 +26,17 @@ export const EuiAccordionArrow: FunctionComponent<_EuiAccordionArrowProps> = ({
   isOpen,
   ...rest
 }) => {
-  const euiTheme = useEuiTheme();
-
-  if (arrowDisplay === 'none') return null;
-
-  const styles = euiAccordionArrowStyles(euiTheme);
+  const styles = useEuiMemoizedStyles(euiAccordionArrowStyles);
   const cssStyles = [
     styles.euiAccordion__arrow,
-    styles[arrowDisplay],
+    arrowDisplay !== 'none' && styles[arrowDisplay],
     isOpen ? styles.isOpen : styles.isClosed,
     arrowProps?.css,
   ];
 
   const classes = classNames('euiAccordion__arrow', arrowProps?.className);
 
-  return (
+  return arrowDisplay !== 'none' ? (
     <EuiButtonIcon
       color="text"
       {...arrowProps}
@@ -49,5 +45,5 @@ export const EuiAccordionArrow: FunctionComponent<_EuiAccordionArrowProps> = ({
       css={cssStyles}
       iconType="arrowRight"
     />
-  );
+  ) : null;
 };

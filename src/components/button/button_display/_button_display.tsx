@@ -44,7 +44,6 @@ export type EuiButtonDisplaySizes = (typeof SIZES)[number];
 export interface EuiButtonDisplayCommonProps
   extends EuiButtonDisplayContentProps,
     CommonProps {
-  element?: 'a' | 'button' | 'span';
   children?: ReactNode;
   size?: EuiButtonDisplaySizes;
   /**
@@ -111,7 +110,6 @@ export function isButtonDisabled({
 export const EuiButtonDisplay = forwardRef<HTMLElement, EuiButtonDisplayProps>(
   (
     {
-      element: _element = 'button', // TODO: Not doing anything with this now
       type = 'button',
       children,
       iconType,

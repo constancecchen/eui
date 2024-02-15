@@ -17,11 +17,7 @@ import React, {
 } from 'react';
 import classNames from 'classnames';
 
-import {
-  useEuiTheme,
-  getSecureRelForTarget,
-  validateHref,
-} from '../../services';
+import { useEuiTheme, RenderLinkOrButton } from '../../services';
 import { CommonProps } from '../common';
 import { EuiInnerText } from '../inner_text';
 import { EuiIcon } from '../icon';
@@ -109,68 +105,21 @@ export type EuiSideNavItemProps<T> = T extends { renderItem: Function }
   ? T & { renderItem: RenderItem<T> }
   : T;
 
-const DefaultRenderItem = ({
-  href,
-  target,
-  rel,
-  onClick,
-  className,
-  children,
-  disabled,
-  ...rest
-}: _EuiSideNavItemButtonProps) => {
-  if (href && !disabled) {
-    const secureRel = getSecureRelForTarget({ href, rel, target });
-    return (
-      <a
-        className={className}
-        href={href}
-        target={target}
-        rel={secureRel}
-        onClick={onClick}
-        {...rest}
-      >
-        {children}
-      </a>
-    );
-  }
-
-  if (onClick || disabled) {
-    return (
-      <button
-        type="button"
-        className={className}
-        onClick={onClick}
-        disabled={disabled}
-        {...rest}
-      >
-        {children}
-      </button>
-    );
-  }
-
-  return (
-    <div className={className} {...rest}>
-      {children}
-    </div>
-  );
-};
-
 export const EuiSideNavItem = <
   T extends _EuiSideNavItemButtonProps &
-    _EuiSideNavItemProps & { renderItem?: (props: any) => JSX.Element }
+    _EuiSideNavItemProps & { renderItem?: (props: any) => ReactNode }
 >({
   isOpen,
   isSelected,
   isParent,
   icon,
   onClick,
-  href: _href,
+  href,
   rel,
   target,
   items,
   children,
-  renderItem: RenderItem = DefaultRenderItem,
+  renderItem: RenderItem = RenderLinkOrButton,
   depth = 0,
   className,
   css,
@@ -182,9 +131,6 @@ export const EuiSideNavItem = <
   ...rest
 }: EuiSideNavItemProps<T>) => {
   const euiTheme = useEuiTheme();
-
-  const isHrefValid = !_href || validateHref(_href);
-  const href = isHrefValid ? _href : '';
 
   // Forcing accordion style item if not linked, but has children
   const [itemIsOpen, setItemIsOpen] = useState(isOpen);
@@ -251,6 +197,11 @@ export const EuiSideNavItem = <
     isRoot && buttonStyles.label.root,
   ];
 
+  const defaultRendererProps = RenderItem === RenderLinkOrButton && {
+    fallbackElement: 'div',
+    isDisabled: rest.disabled,
+  };
+
   return (
     <div css={cssStyles} className={classes} style={style}>
       <RenderItem
@@ -261,6 +212,7 @@ export const EuiSideNavItem = <
         target={target}
         onClick={childrenOnly ? toggleItemOpen : onClick}
         {...rest}
+        {...defaultRendererProps}
       >
         <span
           css={buttonStyles.euiSideNavItemButton__content}

@@ -37,6 +37,7 @@ export type RenderLinkOrButtonProps = HTMLAttributes<HTMLElement> &
     rel?: HTMLAttributes<HTMLAnchorElement>['rel'];
     target?: AnchorHTMLAttributes<HTMLAnchorElement>['target'];
     onClick?: MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>;
+    hasToolTip?: boolean;
     /**
      * Conditional props to pass to the element if it's a link
      */
@@ -70,6 +71,7 @@ export const RenderLinkOrButton: FunctionComponent<RenderLinkOrButtonProps> = ({
   target,
   buttonProps,
   onClick,
+  hasToolTip,
   isDisabled: _isDisabled,
   ...rest
 }) => {
@@ -88,13 +90,14 @@ export const RenderLinkOrButton: FunctionComponent<RenderLinkOrButtonProps> = ({
     if (isDisabled) return 'button';
     if (isValidHref) return 'a';
     if (onClick) return 'button';
+    if (hasToolTip) return 'button';
     if (fallbackElement === 'a' || fallbackElement === 'button') {
       console.warn(
         'No `href` or `onClick` prop was passed to this interactive element.'
       );
     }
     return fallbackElement;
-  }, [isDisabled, isValidHref, onClick, fallbackElement]);
+  }, [isDisabled, isValidHref, onClick, hasToolTip, fallbackElement]);
 
   if (element === 'button') {
     const cssStyles = [componentCss, buttonProps?.css, rest.css];

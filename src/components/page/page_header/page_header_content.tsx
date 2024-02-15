@@ -11,7 +11,7 @@ import classNames from 'classnames';
 import { CommonProps } from '../../common';
 import { EuiIcon, EuiIconProps, IconType } from '../../icon';
 import { EuiTab, EuiTabs, EuiTabsProps } from '../../tabs';
-import { Props as EuiTabProps } from '../../tabs/tab';
+import { EuiTabProps } from '../../tabs/tab';
 import { EuiFlexGroup, EuiFlexItem, EuiFlexGroupProps } from '../../flex';
 import { EuiSpacer } from '../../spacer';
 import { EuiTitle, EuiTitleProps } from '../../title';

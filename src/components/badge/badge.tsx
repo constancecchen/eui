@@ -10,16 +10,16 @@ import React, {
   AriaAttributes,
   FunctionComponent,
   HTMLAttributes,
+  AnchorHTMLAttributes,
   MouseEventHandler,
   ReactNode,
-  Ref,
   useMemo,
 } from 'react';
 import classNames from 'classnames';
 import { CommonProps, ExclusiveUnion, PropsOf } from '../common';
 import {
   useEuiTheme,
-  getSecureRelForTarget,
+  RenderLinkOrButton,
   wcagContrastMin,
   validateHref,
 } from '../../services';
@@ -27,7 +27,7 @@ import { EuiInnerText } from '../inner_text';
 import { EuiIcon, IconType } from '../icon';
 
 import { getTextColor, getColorContrast, getIsValidColor } from './color_utils';
-import { euiBadgeStyles } from './badge.styles';
+import { euiBadgeStyles, euiBadgeIconStyles } from './badge.styles';
 
 export const ICON_SIDES = ['left', 'right'] as const;
 type IconSide = (typeof ICON_SIDES)[number];
@@ -43,27 +43,19 @@ export const COLORS = [
 ] as const;
 type BadgeColor = (typeof COLORS)[number];
 
-type WithButtonProps = {
+export type WithOnClick = {
   /**
    * Will apply an onclick to the badge itself
    */
-  onClick: MouseEventHandler<HTMLButtonElement>;
+  onClick: MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>;
 
   /**
    * Aria label applied to the onClick button
    */
   onClickAriaLabel: AriaAttributes['aria-label'];
-} & Omit<HTMLAttributes<HTMLButtonElement>, 'onClick' | 'color'>;
+};
 
-type WithAnchorProps = {
-  href: string;
-  target?: string;
-  rel?: string;
-} & Omit<HTMLAttributes<HTMLAnchorElement>, 'href' | 'color' | 'onClick'>;
-
-type WithSpanProps = Omit<HTMLAttributes<HTMLSpanElement>, 'onClick' | 'color'>;
-
-interface WithIconOnClick {
+type WithIconOnClick = {
   /**
    * Will apply an onclick to icon within the badge
    */
@@ -73,38 +65,37 @@ interface WithIconOnClick {
    * Aria label applied to the iconOnClick button
    */
   iconOnClickAriaLabel: AriaAttributes['aria-label'];
-}
+};
 
-export type EuiBadgeProps = {
-  /**
-   * Accepts any string from our icon library
-   */
-  iconType?: IconType;
-
-  /**
-   * The side of the badge the icon should sit
-   */
-  iconSide?: IconSide;
-
-  /**
-   * Accepts either our palette colors (primary, success ..etc) or a hex value `#FFFFFF`, `#000`.
-   */
-  color?: BadgeColor | string;
-  /**
-   * Will override any color passed through the `color` prop.
-   */
-  isDisabled?: boolean;
-
-  /**
-   * Props passed to the close button.
-   */
-  closeButtonProps?: Partial<PropsOf<typeof EuiIcon>>;
-} & CommonProps &
+export type EuiBadgeProps = CommonProps &
+  HTMLAttributes<HTMLElement> &
+  Pick<AnchorHTMLAttributes<HTMLAnchorElement>, 'href' | 'target' | 'rel'> &
   ExclusiveUnion<WithIconOnClick, {}> &
-  ExclusiveUnion<
-    ExclusiveUnion<WithButtonProps, WithAnchorProps>,
-    WithSpanProps
-  >;
+  ExclusiveUnion<WithOnClick, {}> & {
+    /**
+     * Accepts any string from our icon library
+     */
+    iconType?: IconType;
+
+    /**
+     * The side of the badge the icon should sit
+     */
+    iconSide?: IconSide;
+
+    /**
+     * Accepts either our palette colors (primary, success ..etc) or a hex value `#FFFFFF`, `#000`.
+     */
+    color?: BadgeColor | string;
+    /**
+     * Will override any color passed through the `color` prop.
+     */
+    isDisabled?: boolean;
+
+    /**
+     * Props passed to the close button.
+     */
+    closeButtonProps?: Partial<PropsOf<typeof EuiIcon>>;
+  };
 
 export const EuiBadge: FunctionComponent<EuiBadgeProps> = ({
   children,
@@ -126,9 +117,11 @@ export const EuiBadge: FunctionComponent<EuiBadgeProps> = ({
 }) => {
   const euiTheme = useEuiTheme();
 
+  const isClickable = !!(onClick || href);
   const isHrefValid = !href || validateHref(href);
   const isDisabled = _isDisabled || !isHrefValid;
   const isNamedColor = COLORS.includes(color as BadgeColor);
+  const hasChildren = !!children;
 
   const customColorStyles = useMemo(() => {
     // Named colors set their styles via Emotion CSS and not inline styles
@@ -169,58 +162,41 @@ export const EuiBadge: FunctionComponent<EuiBadgeProps> = ({
   const cssStyles = [
     styles.euiBadge,
     isNamedColor && styles[color as BadgeColor],
-    (onClick || href) && !iconOnClick && styles.clickable,
+    isClickable && !iconOnClick && styles.clickable,
     isDisabled && styles.disabled,
   ];
   const textCssStyles = [
     styles.text.euiBadge__text,
-    (onClick || href) && !isDisabled && styles.text.clickable,
-  ];
-  const iconCssStyles = [styles.icon.euiBadge__icon, styles.icon[iconSide]];
-  const iconButtonCssStyles = [
-    styles.iconButton.euiBadge__iconButton,
-    styles.iconButton[iconSide],
+    isDisabled && styles.text.disabled,
+    isClickable && !isDisabled && styles.text.clickable,
+    isClickable && !isDisabled && iconOnClick && styles.text.childButton,
   ];
 
   const classes = classNames('euiBadge', className);
 
-  const closeClassNames = classNames(
-    'euiBadge__icon',
-    closeButtonProps?.className
-  );
-
-  const Element = href && !isDisabled ? 'a' : 'button';
-  const relObj: {
-    href?: string;
-    target?: string;
-    rel?: string;
-    onClick?:
-      | ((event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void)
-      | ((event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => void);
-  } = {};
-
-  if (href && !isDisabled) {
-    relObj.href = href;
-    relObj.target = target;
-    relObj.rel = getSecureRelForTarget({ href, target, rel });
-  }
-  if (onClick) {
-    relObj.onClick = onClick;
+  if (onClick && !onClickAriaLabel) {
+    console.warn(
+      'When passing onClick to EuiBadge, you must also provide onClickAriaLabel'
+    );
   }
 
-  let optionalIcon: ReactNode = null;
-  if (iconType) {
+  const optionalIcon: ReactNode = useMemo(() => {
+    if (!iconType) return null;
+
+    const styles = euiBadgeIconStyles(euiTheme);
+
     if (iconOnClick) {
       if (!iconOnClickAriaLabel) {
         console.warn(
-          'When passing the iconOnClick props to EuiBadge, you must also provide iconOnClickAriaLabel'
+          'When passing iconOnClick to EuiBadge, you must also provide iconOnClickAriaLabel'
         );
       }
-      optionalIcon = (
+
+      return (
         <button
           type="button"
           className="euiBadge__iconButton"
-          css={iconButtonCssStyles}
+          css={styles.euiBadge__iconButton}
           aria-label={iconOnClickAriaLabel}
           disabled={isDisabled}
           title={iconOnClickAriaLabel}
@@ -231,118 +207,72 @@ export const EuiBadge: FunctionComponent<EuiBadgeProps> = ({
             size="s"
             color="inherit" // forces the icon to inherit its parent color
             {...closeButtonProps}
-            className={closeClassNames}
-            css={[...iconCssStyles, closeButtonProps?.css]}
+            className={classNames(
+              'euiBadge__icon',
+              closeButtonProps?.className
+            )}
           />
         </button>
       );
     } else {
-      optionalIcon = (
+      return (
         <EuiIcon
           type={iconType}
-          size={children ? 's' : 'm'}
+          size={hasChildren ? 's' : 'm'}
           className="euiBadge__icon"
-          css={iconCssStyles}
+          css={styles.euiBadge__icon}
           color="inherit" // forces the icon to inherit its parent color
         />
       );
     }
-  }
+  }, [
+    iconType,
+    iconOnClick,
+    iconOnClickAriaLabel,
+    closeButtonProps,
+    isDisabled,
+    hasChildren,
+    euiTheme,
+  ]);
 
-  if (onClick && !onClickAriaLabel) {
-    console.warn(
-      'When passing onClick to EuiBadge, you must also provide onClickAriaLabel'
-    );
-  }
+  const clickableBadgeProps = {
+    href,
+    rel,
+    target,
+    onClick,
+    'aria-label': isClickable ? onClickAriaLabel : undefined,
+    ...rest,
+  };
 
-  const content = (
-    <span className="euiBadge__content" css={styles.euiBadge__content}>
-      {iconSide === 'left' && optionalIcon}
-      {children && (
-        <span className="euiBadge__text" css={textCssStyles}>
-          {children}
-        </span>
-      )}
-      {iconSide === 'right' && optionalIcon}
-    </span>
-  );
-
-  if (iconOnClick) {
-    return onClick || href ? (
-      <span className={classes} css={cssStyles} style={customColorStyles}>
-        <span className="euiBadge__content" css={styles.euiBadge__content}>
-          {iconSide === 'left' && optionalIcon}
+  return (
+    <RenderLinkOrButton
+      fallbackElement="span"
+      className={classes}
+      css={cssStyles}
+      style={customColorStyles}
+      isDisabled={isDisabled}
+      {...(!iconOnClick && clickableBadgeProps)}
+    >
+      <span className="euiBadge__content" css={styles.euiBadge__content}>
+        {iconSide === 'left' && optionalIcon}
+        {children && (
           <EuiInnerText>
             {(ref, innerText) => (
-              <Element
-                className="euiBadge__childButton"
-                css={styles.euiBadge__childButton}
-                disabled={isDisabled}
-                aria-label={onClickAriaLabel}
-                ref={ref}
+              <RenderLinkOrButton
+                fallbackElement="span"
+                className="euiBadge__text"
+                css={textCssStyles}
+                elementRef={ref}
                 title={innerText}
-                {...(relObj as HTMLAttributes<HTMLElement>)}
-                {...(rest as HTMLAttributes<HTMLElement>)}
+                {...(iconOnClick && !isDisabled && clickableBadgeProps)}
               >
                 {children}
-              </Element>
+              </RenderLinkOrButton>
             )}
           </EuiInnerText>
-          {iconSide === 'right' && optionalIcon}
-        </span>
+        )}
+        {iconSide === 'right' && optionalIcon}
       </span>
-    ) : (
-      <EuiInnerText>
-        {(ref, innerText) => (
-          <span
-            className={classes}
-            css={cssStyles}
-            style={customColorStyles}
-            ref={ref}
-            title={innerText}
-            {...rest}
-          >
-            {content}
-          </span>
-        )}
-      </EuiInnerText>
-    );
-  } else if (onClick || href) {
-    return (
-      <EuiInnerText>
-        {(ref, innerText) => (
-          <Element
-            disabled={isDisabled}
-            aria-label={onClickAriaLabel}
-            className={classes}
-            css={cssStyles}
-            style={customColorStyles}
-            ref={ref as Ref<HTMLButtonElement & HTMLAnchorElement>}
-            title={innerText}
-            {...(relObj as HTMLAttributes<HTMLElement>)}
-            {...(rest as HTMLAttributes<HTMLElement>)}
-          >
-            {content}
-          </Element>
-        )}
-      </EuiInnerText>
-    );
-  } else {
-    return (
-      <EuiInnerText>
-        {(ref, innerText) => (
-          <span
-            className={classes}
-            css={cssStyles}
-            style={customColorStyles}
-            ref={ref}
-            title={innerText}
-            {...rest}
-          >
-            {content}
-          </span>
-        )}
-      </EuiInnerText>
-    );
-  }
+    </RenderLinkOrButton>
+  );
 };

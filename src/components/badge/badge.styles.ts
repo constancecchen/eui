@@ -108,6 +108,7 @@ export const euiBadgeStyles = (euiThemeContext: UseEuiTheme) => {
       )}
       display: flex;
       align-items: center;
+      gap: ${euiTheme.size.xs};
       overflow: hidden;
     `,
 
@@ -115,76 +116,50 @@ export const euiBadgeStyles = (euiThemeContext: UseEuiTheme) => {
     text: {
       euiBadge__text: css`
         ${euiTextTruncate()}
-        cursor: inherit;
+      `,
+      disabled: css`
+        cursor: not-allowed;
       `,
       clickable: css`
         cursor: pointer;
       `,
-    },
+      childButton: css`
+        text-align: inherit;
+        font-weight: inherit;
+        line-height: inherit;
+        color: inherit;
 
-    // Icon
-    icon: {
-      euiBadge__icon: css``,
-      right: css`
-        &:not(:only-child) {
-          ${logicalCSS('margin-left', euiTheme.size.xs)}
-        }
-      `,
-      left: css`
-        &:not(:only-child) {
-          ${logicalCSS('margin-right', euiTheme.size.xs)}
+        &:not(:disabled) {
+          &:hover,
+          &:focus {
+            text-decoration: underline;
+          }
         }
       `,
     },
+  };
+};
 
-    // Clickable icons (iconOnClick)
-    iconButton: {
-      euiBadge__iconButton: css`
-        font-size: 0; /* Makes the button only as large as the icon so it aligns vertically better */
+export const euiBadgeIconStyles = ({ euiTheme }: UseEuiTheme) => {
+  return {
+    // SVG icon
+    euiBadge__icon: css``,
 
-        &:focus {
-          background-color: ${transparentize(euiTheme.colors.ghost, 0.8)};
-          color: ${euiTheme.colors.ink};
-          border-radius: ${mathWithUnits(
-            euiTheme.border.radius.small,
-            (x) => x / 2
-          )};
-        }
+    // Button wrapper around icon when `iconOnClick` is passed
+    euiBadge__iconButton: css`
+      font-size: 0; /* Makes the button only as large as the icon so it aligns vertically better */
 
-        &:disabled {
-          cursor: not-allowed;
-        }
-
-        .euiBadge__icon {
-          /* Remove margins from icon itself so that focus state doesn't include that space */
-          margin: 0 !important; /* stylelint-disable-line declaration-no-important */
-        }
-      `,
-      right: css`
-        ${logicalCSS('margin-left', euiTheme.size.xs)}
-      `,
-      left: css`
-        ${logicalCSS('margin-right', euiTheme.size.xs)}
-      `,
-    },
-
-    // Used in badges with both onClick & iconOnClick
-    euiBadge__childButton: css`
-      ${euiTextTruncate()}
-      text-align: inherit;
-      font-weight: inherit;
-      line-height: inherit;
-      color: inherit;
+      &:focus {
+        background-color: ${transparentize(euiTheme.colors.ghost, 0.8)};
+        color: ${euiTheme.colors.ink};
+        border-radius: ${mathWithUnits(
+          euiTheme.border.radius.small,
+          (x) => x / 2
+        )};
+      }
 
       &:disabled {
         cursor: not-allowed;
-      }
-
-      &:not(:disabled) {
-        &:hover,
-        &:focus {
-          text-decoration: underline;
-        }
       }
     `,
   };

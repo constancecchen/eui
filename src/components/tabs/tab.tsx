@@ -7,57 +7,44 @@
  */
 
 import React, {
-  MouseEventHandler,
   AnchorHTMLAttributes,
   ButtonHTMLAttributes,
   FunctionComponent,
   ReactNode,
   useContext,
+  useMemo,
+  useCallback,
 } from 'react';
 import classNames from 'classnames';
-import { CommonProps, ExclusiveUnion } from '../common';
-import {
-  getSecureRelForTarget,
-  validateHref,
-  useEuiTheme,
-} from '../../services';
+
+import { RenderLinkOrButton, useEuiTheme } from '../../services';
+import { CommonProps } from '../common';
 
 import { euiTabStyles, euiTabContentStyles } from './tab.styles';
 import { EuiTabsContext } from './tabs_context';
 
-export interface EuiTabProps extends CommonProps {
-  isSelected?: boolean;
-  disabled?: boolean;
-  /**
-   * Places content before the tab content/children.
-   * Will be excluded from interactive effects.
-   */
-  prepend?: ReactNode;
-  /**
-   * Places content after the tab content/children.
-   * Will be excluded from interactive effects.
-   */
-  append?: ReactNode;
-}
-
-type EuiTabPropsForAnchor = EuiTabProps &
-  Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'onClick' | 'href'> & {
-    href?: string;
-    onClick?: MouseEventHandler<HTMLAnchorElement>;
+export type EuiTabProps = CommonProps &
+  Partial<ButtonHTMLAttributes<HTMLButtonElement>> &
+  Pick<AnchorHTMLAttributes<HTMLAnchorElement>, 'href' | 'target' | 'rel'> & {
+    isSelected?: boolean;
+    disabled?: boolean;
+    /**
+     * Places content before the tab content/children.
+     * Will be excluded from interactive effects.
+     */
+    prepend?: ReactNode;
+    /**
+     * Places content after the tab content/children.
+     * Will be excluded from interactive effects.
+     */
+    append?: ReactNode;
   };
 
-type EuiTabPropsForButton = EuiTabProps &
-  Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'onClick'> & {
-    onClick?: MouseEventHandler<HTMLButtonElement>;
-  };
-
-export type Props = ExclusiveUnion<EuiTabPropsForAnchor, EuiTabPropsForButton>;
-
-export const EuiTab: FunctionComponent<Props> = ({
+export const EuiTab: FunctionComponent<EuiTabProps> = ({
   isSelected,
   children,
   className,
-  disabled: _disabled,
+  disabled,
   href,
   target,
   rel,
@@ -67,21 +54,22 @@ export const EuiTab: FunctionComponent<Props> = ({
 }) => {
   const { size, expand } = useContext(EuiTabsContext);
   const euiTheme = useEuiTheme();
-  const isHrefValid = !href || validateHref(href);
-  const disabled = _disabled || !isHrefValid;
 
-  // Keep CSS classnames for reference
   const classes = classNames('euiTab', className, {
     'euiTab-isSelected': isSelected,
   });
 
-  const tabStyles = euiTabStyles(euiTheme);
-  const cssTabStyles = [
-    tabStyles.euiTab,
-    expand && tabStyles.expanded,
-    disabled && tabStyles.disabled.disabled,
-    isSelected && (disabled ? tabStyles.disabled.selected : tabStyles.selected),
-  ];
+  const tabStyles = useMemo(() => euiTabStyles(euiTheme), [euiTheme]);
+  const cssTabStyles = useCallback(
+    (isDisabled: boolean) => [
+      tabStyles.euiTab,
+      expand && tabStyles.expanded,
+      isDisabled && tabStyles.disabled.disabled,
+      isSelected &&
+        (isDisabled ? tabStyles.disabled.selected : tabStyles.selected),
+    ],
+    [tabStyles, expand, isSelected]
+  );
 
   const tabContentStyles = euiTabContentStyles(euiTheme);
   const cssTabContentStyles = [
@@ -89,54 +77,27 @@ export const EuiTab: FunctionComponent<Props> = ({
     size && tabContentStyles[size],
   ];
 
-  const prependNode = prepend && (
-    <span className="euiTab__prepend">{prepend}</span>
-  );
-  const appendNode = append && <span className="euiTab__append">{append}</span>;
-
-  //  <a> elements don't respect the `disabled` attribute. So if we're disabled, we'll just pretend
-  //  this is a button and piggyback off its disabled styles.
-  if (href && !disabled) {
-    const secureRel = getSecureRelForTarget({ href, target, rel });
-
-    return (
-      <a
-        role="tab"
-        aria-selected={!!isSelected}
-        className={classes}
-        css={cssTabStyles}
-        href={href}
-        target={target}
-        rel={secureRel}
-        {...(rest as AnchorHTMLAttributes<HTMLAnchorElement>)}
-      >
-        {prependNode}
-        <span className="euiTab__content" css={cssTabContentStyles}>
-          {children}
-        </span>
-        {appendNode}
-      </a>
-    );
-  }
-
   return (
-    <button
+    <RenderLinkOrButton
       role="tab"
+      fallbackElement="button"
       aria-selected={!!isSelected}
-      type="button"
       className={classes}
-      css={cssTabStyles}
-      disabled={disabled}
-      {...(rest as ButtonHTMLAttributes<HTMLButtonElement>)}
+      componentCss={cssTabStyles}
+      href={href}
+      target={target}
+      rel={rel}
+      isDisabled={disabled}
+      {...rest}
     >
-      {prependNode}
+      {prepend && <span className="euiTab__prepend">{prepend}</span>}
       <span
         className="euiTab__content eui-textTruncate"
         css={cssTabContentStyles}
       >
         {children}
       </span>
-      {appendNode}
-    </button>
+      {append && <span className="euiTab__append">{append}</span>}
+    </RenderLinkOrButton>
   );
 };

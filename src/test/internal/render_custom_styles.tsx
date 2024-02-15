@@ -69,6 +69,10 @@ type ShouldRenderCustomStylesOptions = {
    * Used for components that only render certain elements on, e.g. hover or click
    */
   renderCallback?: (result: ReturnType<typeof render>) => void;
+  /**
+   * Optionally output rendered DOM to inspect for debugging
+   */
+  debug?: boolean;
 };
 
 export const shouldRenderCustomStyles = (
@@ -103,7 +107,9 @@ export const shouldRenderCustomStyles = (
   if (!(options.skip?.parentTest && options.childProps)) {
     it(`should render custom ${propsToTest}`, async () => {
       const euiCss = await getEuiEmotionCss();
-      const { baseElement } = await renderWith(testProps);
+      const { baseElement, debug } = await renderWith(testProps);
+      if (options.debug) debug();
+
       assertOutputStyles(baseElement, euiCss);
     });
   }
@@ -118,7 +124,8 @@ export const shouldRenderCustomStyles = (
           childProps,
           testProps
         );
-        const { baseElement } = await renderWith(mergedChildProps);
+        const { baseElement, debug } = await renderWith(mergedChildProps);
+        if (options.debug) debug();
 
         assertOutputStyles(baseElement, euiCss);
       });

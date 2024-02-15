@@ -7,20 +7,19 @@
  */
 
 import React, {
-  AriaAttributes,
   FunctionComponent,
+  AnchorHTMLAttributes,
   HTMLAttributes,
-  MouseEventHandler,
   ReactNode,
 } from 'react';
 import classNames from 'classnames';
+
+import { RenderLinkOrButton, useEuiTheme } from '../../../services';
 import { CommonProps, ExclusiveUnion } from '../../common';
-
-import { getSecureRelForTarget, useEuiTheme } from '../../../services';
-
 import { EuiToolTip, EuiToolTipProps, ToolTipPositions } from '../../tool_tip';
-
 import { EuiIcon, IconType } from '../../icon';
+
+import type { WithOnClick } from '../badge';
 
 import { euiBetaBadgeStyles } from './beta_badge.styles';
 
@@ -32,29 +31,6 @@ export type BetaBadgeSize = (typeof SIZES)[number];
 
 export const ALIGNMENTS = ['baseline', 'middle'] as const;
 export type BetaBadgeAlignment = (typeof ALIGNMENTS)[number];
-
-type WithButtonProps = {
-  /**
-   * Will apply an onclick to the badge itself
-   */
-  onClick?: MouseEventHandler<HTMLButtonElement>;
-
-  /**
-   * Aria label applied to the onClick button
-   */
-  onClickAriaLabel?: AriaAttributes['aria-label'];
-} & Omit<HTMLAttributes<HTMLButtonElement>, 'onClick' | 'color'>;
-
-type WithAnchorProps = {
-  href: string;
-  target?: string;
-  rel?: string;
-} & Omit<HTMLAttributes<HTMLAnchorElement>, 'href' | 'color' | 'onClick'>;
-
-type WithSpanProps = Omit<
-  HTMLAttributes<HTMLSpanElement>,
-  'onClick' | 'color' | 'title'
->;
 
 // `label` prop can be a `ReactNode` only if `title` or `tooltipContent` is provided
 type LabelAsNode = ExclusiveUnion<
@@ -122,10 +98,9 @@ type BadgeProps = {
 } & ExclusiveUnion<LabelAsNode, LabelAsString>;
 
 export type EuiBetaBadgeProps = CommonProps &
-  ExclusiveUnion<
-    ExclusiveUnion<WithButtonProps, WithAnchorProps>,
-    WithSpanProps
-  > &
+  HTMLAttributes<HTMLElement> &
+  Pick<AnchorHTMLAttributes<HTMLAnchorElement>, 'href' | 'target' | 'rel'> &
+  ExclusiveUnion<WithOnClick, {}> &
   BadgeProps;
 
 export const EuiBetaBadge: FunctionComponent<EuiBetaBadgeProps> = ({
@@ -178,92 +153,42 @@ export const EuiBetaBadge: FunctionComponent<EuiBetaBadgeProps> = ({
     );
   }
 
-  const Element = href ? 'a' : 'button';
-  const relObj: {
-    href?: string;
-    target?: string;
-    rel?: string;
-    onClick?:
-      | ((event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void)
-      | ((event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => void);
-  } = {};
+  const badge = (
+    <RenderLinkOrButton
+      css={cssStyles}
+      className={classes}
+      onClick={onClick}
+      href={href}
+      target={target}
+      rel={rel}
+      fallbackElement="span"
+      tabIndex={!!tooltipContent ? 0 : undefined} // Ensure fallback spans are still tabbable
+      aria-label={onClickAriaLabel}
+      title={typeof label === 'string' ? label : title}
+      {...rest}
+    >
+      {icon || label}
+    </RenderLinkOrButton>
+  );
 
-  if (href) {
-    relObj.href = href;
-    relObj.target = target;
-    relObj.rel = getSecureRelForTarget({ href, target, rel });
-  }
-  if (onClick) {
-    relObj.onClick = onClick;
-  }
-
-  let content;
-  if (onClick || href) {
-    content = (
-      <Element
-        aria-label={onClickAriaLabel}
-        css={cssStyles}
-        className={classes}
-        title={typeof label === 'string' ? label : title}
-        {...(relObj as HTMLAttributes<HTMLElement>)}
-        {...(rest as HTMLAttributes<HTMLElement>)}
+  if (tooltipContent) {
+    return (
+      <EuiToolTip
+        position={tooltipPosition}
+        content={tooltipContent}
+        title={title || label}
+        anchorProps={anchorProps}
       >
-        {icon || label}
-      </Element>
+        {badge}
+      </EuiToolTip>
     );
-    if (tooltipContent) {
-      return (
-        <EuiToolTip
-          position={tooltipPosition}
-          content={tooltipContent}
-          title={title || label}
-          anchorProps={anchorProps}
-        >
-          {content}
-        </EuiToolTip>
-      );
-    } else {
-      return <span {...anchorProps}>{content}</span>;
-    }
   } else {
-    if (tooltipContent) {
-      return (
-        <EuiToolTip
-          position={tooltipPosition}
-          content={tooltipContent}
-          title={title || label}
-          anchorProps={anchorProps}
-        >
-          <span
-            tabIndex={0}
-            css={cssStyles}
-            className={classes}
-            role="button"
-            {...rest}
-          >
-            {icon || label}
-          </span>
-        </EuiToolTip>
-      );
-    } else {
-      const spanTitle = title || label;
-      if (spanTitle && typeof spanTitle !== 'string') {
-        console.warn(
-          `Only string titles are permitted on badges that do not use tooltips. Found: ${typeof spanTitle}`
-        );
-      }
-      return (
-        <span {...anchorProps}>
-          <span
-            className={classes}
-            title={spanTitle as string}
-            css={cssStyles}
-            {...rest}
-          >
-            {icon || label}
-          </span>
-        </span>
+    const spanTitle = title || label;
+    if (spanTitle && typeof spanTitle !== 'string') {
+      console.warn(
+        `Only string titles are permitted on badges that do not use tooltips. Found: ${typeof spanTitle}`
       );
     }
+    return badge;
   }
 };

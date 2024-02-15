@@ -25,11 +25,9 @@ export default () => {
   };
 
   propsToUse.onClick = {
-    ...propsToUse.onClick,
     type: PropTypes.Custom,
     value: undefined,
     custom: {
-      ...propsToUse.onClick.custom,
       use: 'switch',
       label: 'Simulate',
     },

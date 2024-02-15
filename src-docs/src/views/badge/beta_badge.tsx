@@ -61,6 +61,7 @@ export default () => (
         label="Lens"
         iconType="lensApp"
         onClick={() => alert('Goes to Lens')}
+        onClickAriaLabel="Goes to Lens"
       />
       <EuiBetaBadge
         label="Basic"

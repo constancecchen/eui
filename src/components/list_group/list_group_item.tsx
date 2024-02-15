@@ -7,7 +7,6 @@
  */
 
 import React, {
-  Fragment,
   HTMLAttributes,
   AnchorHTMLAttributes,
   ButtonHTMLAttributes,
@@ -15,6 +14,7 @@ import React, {
   ReactElement,
   MouseEventHandler,
   FunctionComponent,
+  useMemo,
 } from 'react';
 import classNames from 'classnames';
 
@@ -187,37 +187,39 @@ export const EuiListGroupItem: FunctionComponent<EuiListGroupItemProps> = ({
 
   const euiTheme = useEuiTheme();
 
-  const iconStyles = euiListGroupItemIconStyles(euiTheme);
-  const cssIconStyles = [iconStyles.euiListGroupItem__icon, iconProps?.css];
+  const iconNode = useMemo(() => {
+    if (!iconType && !icon) return null;
 
-  let iconNode;
+    const iconStyles = euiListGroupItemIconStyles(euiTheme);
+    const cssIconStyles = [iconStyles.euiListGroupItem__icon, iconProps?.css];
 
-  if (iconType) {
-    iconNode = (
-      <EuiIcon
-        color="inherit" // forces the icon to inherit its parent color
-        {...iconProps}
-        type={iconType}
-        className={classNames('euiListGroupItem__icon', iconProps?.className)}
-        css={cssIconStyles}
-      />
-    );
-
-    if (icon) {
-      console.warn(
-        'Both `iconType` and `icon` were passed to EuiListGroupItem but only one can exist. The `iconType` was used.'
+    if (iconType) {
+      if (icon) {
+        console.warn(
+          'Both `iconType` and `icon` were passed to EuiListGroupItem but only one can exist. The `iconType` was used.'
+        );
+      }
+      return (
+        <EuiIcon
+          color="inherit" // forces the icon to inherit its parent color
+          {...iconProps}
+          type={iconType}
+          className={classNames('euiListGroupItem__icon', iconProps?.className)}
+          css={cssIconStyles}
+        />
       );
     }
-  } else if (icon) {
-    iconNode = cloneElementWithCss(icon, {
-      css: cssIconStyles,
-      className: classNames('euiListGroupItem__icon', icon.props.className),
-    });
-  }
+    if (icon) {
+      return cloneElementWithCss(icon, {
+        css: cssIconStyles,
+        className: classNames('euiListGroupItem__icon', icon.props.className),
+      });
+    }
+  }, [iconType, iconProps, icon, euiTheme]);
 
-  let extraActionNode;
+  const extraActionNode = useMemo(() => {
+    if (!extraAction) return null;
 
-  if (extraAction) {
     const {
       iconType,
       alwaysShow,
@@ -231,7 +233,7 @@ export const EuiListGroupItem: FunctionComponent<EuiListGroupItemProps> = ({
     const extraActionColor: EuiListGroupItemExtraActionProps['color'] =
       color === 'subdued' ? 'text' : color;
 
-    extraActionNode = (
+    return (
       <EuiListGroupItemExtraAction
         color={extraActionColor}
         iconType={iconType}
@@ -241,7 +243,7 @@ export const EuiListGroupItem: FunctionComponent<EuiListGroupItemProps> = ({
         parentIsDisabled={isDisabled}
       />
     );
-  }
+  }, [extraAction, color, isDisabled]);
 
   const labelStyles = euiListGroupItemLabelStyles();
   const cssLabelStyles = [
@@ -375,5 +377,5 @@ export const EuiListGroupItem: FunctionComponent<EuiListGroupItemProps> = ({
     );
   }
 
-  return <Fragment>{itemContent}</Fragment>;
+  return <>{itemContent}</>;
 };

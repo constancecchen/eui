@@ -25,7 +25,8 @@ import { CommonProps } from '../../common';
  */
 export const AUTOFOCUS = ['initial', 'selected'] as const;
 
-export interface EuiTabbedContentTab extends EuiTabProps {
+export interface EuiTabbedContentTab
+  extends Omit<EuiTabProps, 'name' | 'content'> {
   id: string;
   name: ReactNode;
   content: ReactNode;

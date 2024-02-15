@@ -7,16 +7,16 @@
  */
 
 import React, {
-  ButtonHTMLAttributes,
   HTMLAttributes,
   MouseEventHandler,
   ReactNode,
   FunctionComponent,
 } from 'react';
 import classNames from 'classnames';
-import { CommonProps, ExclusiveUnion } from '../common';
+
+import { RenderLinkOrButton, useEuiTheme } from '../../services';
+import { CommonProps } from '../common';
 import { EuiIcon } from '../icon';
-import { useEuiTheme } from '../../services';
 
 import {
   euiExpressionStyles,
@@ -36,65 +36,59 @@ export const COLORS = [
 
 export type ExpressionColor = (typeof COLORS)[number];
 
-export type EuiExpressionProps = CommonProps & {
-  /**
-   * First part of the expression
-   */
-  description: ReactNode;
-  descriptionProps?: CommonProps & HTMLAttributes<HTMLSpanElement>;
-  /**
-   * Second part of the expression
-   */
-  value?: ReactNode;
-  valueProps?: CommonProps & HTMLAttributes<HTMLSpanElement>;
-  /**
-   * Color of the `description`
-   */
-  color?: ExpressionColor;
-  /**
-   * Should the `description` auto-uppercase?
-   */
-  uppercase?: boolean;
-  /**
-   * Adds an solid border at the bottom
-   */
-  isActive?: boolean;
-  /**
-   * Turns the component into a button and adds an editable style border at the bottom
-   */
-  onClick?: MouseEventHandler<HTMLButtonElement>;
-  /**
-   * Sets the display style for the expression. Defaults to `inline`
-   */
-  display?: 'inline' | 'columns';
-  /**
-   * Forces color to display as `danger` and shows an `error` icon
-   */
-  isInvalid?: boolean;
-  /**
-   * Sets a custom width for the description when using the columns layout.
-   * Set to a number for a custom width in `px`.
-   * Set to a string for a custom width in custom measurement.
-   * Defaults to `20%`
-   */
-  descriptionWidth?: number | string;
-  /**
-   * Sets how to handle the wrapping of long text.
-   */
-  textWrap?: 'break-word' | 'truncate';
-};
-
-type Buttonlike = EuiExpressionProps &
-  Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'value'> & {
-    onClick: MouseEventHandler<HTMLButtonElement>;
+export type EuiExpressionProps = Omit<
+  HTMLAttributes<HTMLElement>,
+  'value' | 'onClick'
+> &
+  CommonProps & {
+    /**
+     * First part of the expression
+     */
+    description: ReactNode;
+    descriptionProps?: CommonProps & HTMLAttributes<HTMLSpanElement>;
+    /**
+     * Second part of the expression
+     */
+    value?: ReactNode;
+    valueProps?: CommonProps & HTMLAttributes<HTMLSpanElement>;
+    /**
+     * Color of the `description`
+     */
+    color?: ExpressionColor;
+    /**
+     * Should the `description` auto-uppercase?
+     */
+    uppercase?: boolean;
+    /**
+     * Adds an solid border at the bottom
+     */
+    isActive?: boolean;
+    /**
+     * Turns the component into a button and adds an editable style border at the bottom
+     */
+    onClick?: MouseEventHandler<HTMLButtonElement>;
+    /**
+     * Sets the display style for the expression. Defaults to `inline`
+     */
+    display?: 'inline' | 'columns';
+    /**
+     * Forces color to display as `danger` and shows an `error` icon
+     */
+    isInvalid?: boolean;
+    /**
+     * Sets a custom width for the description when using the columns layout.
+     * Set to a number for a custom width in `px`.
+     * Set to a string for a custom width in custom measurement.
+     * Defaults to `20%`
+     */
+    descriptionWidth?: number | string;
+    /**
+     * Sets how to handle the wrapping of long text.
+     */
+    textWrap?: 'break-word' | 'truncate';
   };
 
-type Spanlike = EuiExpressionProps &
-  Omit<HTMLAttributes<HTMLSpanElement>, 'value'>;
-
-export const EuiExpression: FunctionComponent<
-  ExclusiveUnion<Buttonlike, Spanlike>
-> = ({
+export const EuiExpression: FunctionComponent<EuiExpressionProps> = ({
   className,
   description,
   descriptionProps,
@@ -110,7 +104,7 @@ export const EuiExpression: FunctionComponent<
   textWrap = 'break-word',
   ...rest
 }) => {
-  const calculatedColor = isInvalid ? 'danger' : color;
+  const classes = classNames('euiExpression', className);
 
   const theme = useEuiTheme();
   const styles = euiExpressionStyles(theme);
@@ -123,6 +117,7 @@ export const EuiExpression: FunctionComponent<
     display === 'columns' && styles.columns,
     textWrap === 'truncate' && styles.truncate,
   ];
+
   const descriptionStyles = euiExpressionDescriptionStyles(theme);
   const cssDescriptionStyles = [
     descriptionStyles.euiExpression__description,
@@ -131,6 +126,7 @@ export const EuiExpression: FunctionComponent<
     textWrap === 'truncate' && descriptionStyles.truncate,
     display === 'columns' && descriptionStyles.columns,
   ];
+
   const valueStyles = euiExpressionValueStyles(theme);
   const cssValueStyles = [
     valueStyles.euiExpression__value,
@@ -144,26 +140,19 @@ export const EuiExpression: FunctionComponent<
     display === 'columns' && iconStyles.columns,
   ];
 
-  const classes = classNames('euiExpression', className);
-
-  const Component = onClick ? 'button' : 'span';
-
   const customWidth =
     display === 'columns' && descriptionWidth
       ? { flexBasis: descriptionWidth }
       : undefined;
 
-  const invalidIcon = isInvalid ? (
-    <EuiIcon
-      className="euiExpression__icon"
-      type="warning"
-      css={cssIconStyles}
-      color={calculatedColor}
-    />
-  ) : undefined;
-
   return (
-    <Component css={cssStyles} className={classes} onClick={onClick} {...rest}>
+    <RenderLinkOrButton
+      fallbackElement="span"
+      componentCss={cssStyles}
+      className={classes}
+      onClick={onClick}
+      {...rest}
+    >
       <span
         {...descriptionProps}
         className={classNames(
@@ -184,7 +173,14 @@ export const EuiExpression: FunctionComponent<
           {value}
         </span>
       )}
-      {invalidIcon}
-    </Component>
+      {isInvalid && (
+        <EuiIcon
+          className="euiExpression__icon"
+          type="warning"
+          css={cssIconStyles}
+          color="danger"
+        />
+      )}
+    </RenderLinkOrButton>
   );
 };

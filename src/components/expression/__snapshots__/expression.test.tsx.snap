@@ -281,6 +281,7 @@ exports[`EuiExpression render with only description 1`] = `
   aria-label="aria-label"
   class="euiExpression testClass1 testClass2 emotion-euiExpression-isClickable-success-euiTestCss"
   data-test-subj="test subject string"
+  type="button"
 >
   <span
     class="euiExpression__description emotion-euiExpression__description-success-isUppercase"
@@ -296,6 +297,7 @@ exports[`EuiExpression renders 1`] = `
   aria-label="aria-label"
   class="euiExpression testClass1 testClass2 emotion-euiExpression-isClickable-success-euiTestCss"
   data-test-subj="test subject string"
+  type="button"
 >
   <span
     class="euiExpression__description emotion-euiExpression__description-success-isUppercase"

@@ -13,7 +13,6 @@ export default () => (
         color="primary"
         onClick={() => {}}
         onClickAriaLabel="Example of onClick event for the button"
-        data-test-sub="testExample1"
       >
         onClick on text within badge
       </EuiBadge>
@@ -25,7 +24,6 @@ export default () => (
         iconSide="right"
         iconOnClick={() => {}}
         iconOnClickAriaLabel="Example of onClick event for icon within the button"
-        data-test-sub="testExample2"
       >
         onClick on icon within badge
       </EuiBadge>
@@ -39,7 +37,6 @@ export default () => (
         onClickAriaLabel="Example of onClick event for the button"
         iconOnClick={() => {}}
         iconOnClickAriaLabel="Example of onClick event for icon within the button"
-        data-test-sub="testExample3"
       >
         onClick on both text and icon within badge
       </EuiBadge>
@@ -50,12 +47,22 @@ export default () => (
         color="danger"
         onClick={() => {}}
         onClickAriaLabel="Example of disabled button badge"
+        iconType="cross"
+        iconSide="right"
         iconOnClick={() => {}}
         iconOnClickAriaLabel="Example of disabled button badge"
-        data-test-sub="testExample4"
       >
         disabled button badge
       </EuiBadge>
+    </EuiFlexItem>
+    <EuiFlexItem grow={false}>
+      <EuiBadge
+        color="danger"
+        iconType="cross"
+        iconSide="right"
+        iconOnClick={() => {}}
+        iconOnClickAriaLabel="Example of clickable icon button badge"
+      />
     </EuiFlexItem>
   </EuiFlexGroup>
 );

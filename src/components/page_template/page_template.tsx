@@ -160,7 +160,7 @@ export const _EuiPageTemplate: FunctionComponent<EuiPageTemplateProps> = ({
         React.cloneElement(child, {
           key: `sidebar${index}`,
           ...getSideBarProps(),
-          // Allow their props overridden by appending the child props spread at the end
+          // Allow consumer props to override EUI props
           ...child.props,
         })
       );

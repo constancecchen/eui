@@ -7,10 +7,12 @@
  */
 
 import React, {
-  ElementType as ReactElementType,
   FunctionComponent,
   ReactNode,
   Ref,
+  HTMLAttributes,
+  AnchorHTMLAttributes,
+  ButtonHTMLAttributes,
   LabelHTMLAttributes,
   useMemo,
 } from 'react';
@@ -18,17 +20,12 @@ import classNames from 'classnames';
 
 import {
   useEuiTheme,
-  getSecureRelForTarget,
-  validateHref,
   useGeneratedHtmlId,
+  validateHref,
+  RenderLinkOrButton,
 } from '../../services';
 
-import {
-  CommonProps,
-  ExclusiveUnion,
-  PropsForAnchor,
-  PropsForButton,
-} from '../common';
+import { CommonProps, ExclusiveUnion } from '../common';
 
 import { EuiBetaBadge } from '../badge/beta_badge';
 import { IconType } from '../icon';
@@ -39,8 +36,6 @@ import {
   euiKeyPadMenuItemStyles,
   euiKeyPadMenuItemChildStyles,
 } from './key_pad_menu_item.styles';
-
-export type EuiKeyPadMenuItemCheckableType = 'single' | 'multi';
 
 export type EuiKeyPadMenuItemCommonProps = {
   /**
@@ -63,60 +58,49 @@ export type EuiKeyPadMenuItemCommonProps = {
   label: ReactNode;
 };
 
-type EuiKeyPadMenuItemPropsForUncheckable = {
-  /**
-   * Beta badges are unavailable if the item is checkable
-   */
-  checkable?: undefined;
-  /**
-   * Add a badge to the card to label it as "Beta" or other non-GA state
-   */
-  betaBadgeLabel?: string;
-  /**
-   * Supply an icon type if the badge should just be an icon
-   */
-  betaBadgeIconType?: IconType;
-  /**
-   * Add a description to the beta badge (will appear in a tooltip)
-   */
-  betaBadgeTooltipContent?: ReactNode;
-  /**
-   * Extends the wrapping EuiToolTip props when `betaBadgeLabel` is provided
-   */
-  betaBadgeTooltipProps?: Partial<
-    Omit<EuiToolTipProps, 'title' | 'content' | 'delay'>
-  >;
-  /**
-   * Use `onClick` instead when the item is not `checkable`
-   */
-  onChange?: never;
-};
+type EuiKeyPadMenuItemPropsForUncheckable = HTMLAttributes<HTMLElement> &
+  Pick<ButtonHTMLAttributes<HTMLButtonElement>, 'disabled' | 'type'> &
+  Pick<AnchorHTMLAttributes<HTMLAnchorElement>, 'href' | 'target' | 'rel'> & {
+    /**
+     * Beta badges are unavailable if the item is checkable
+     */
+    checkable?: never;
+    /**
+     * Add a badge to the card to label it as "Beta" or other non-GA state
+     */
+    betaBadgeLabel?: string;
+    /**
+     * Supply an icon type if the badge should just be an icon
+     */
+    betaBadgeIconType?: IconType;
+    /**
+     * Add a description to the beta badge (will appear in a tooltip)
+     */
+    betaBadgeTooltipContent?: ReactNode;
+    /**
+     * Extends the wrapping EuiToolTip props when `betaBadgeLabel` is provided
+     */
+    betaBadgeTooltipProps?: Partial<
+      Omit<EuiToolTipProps, 'title' | 'content' | 'delay'>
+    >;
+    /**
+     * Use `onClick` instead when the item is not `checkable`
+     */
+    onChange?: never;
+    buttonRef?: Ref<HTMLButtonElement | HTMLAnchorElement>;
+  };
 
-type EuiKeyPadMenuItemPropsForAnchor = PropsForAnchor<
-  EuiKeyPadMenuItemCommonProps,
-  {
-    buttonRef?: Ref<HTMLAnchorElement>;
-    rel?: string;
-  } & EuiKeyPadMenuItemPropsForUncheckable
->;
-
-type EuiKeyPadMenuItemPropsForButton = PropsForButton<
-  EuiKeyPadMenuItemCommonProps,
-  {
-    buttonRef?: Ref<HTMLButtonElement>;
-  } & EuiKeyPadMenuItemPropsForUncheckable
->;
+export type EuiKeyPadMenuItemCheckableType = 'single' | 'multi';
 
 type EuiKeyPadMenuItemPropsForCheckable = Omit<
   LabelHTMLAttributes<HTMLLabelElement>,
   'onChange'
-> &
-  EuiKeyPadMenuItemCommonProps & {
-    /**
-     * Use `onChange` instead when the item is `checkable`
-     */
-    onClick?: never;
-  } & ExclusiveUnion<
+> & {
+  /**
+   * Use `onChange` instead when the item is `checkable`
+   */
+  onClick?: never;
+} & ExclusiveUnion<
     {
       /**
        * Type `'single'` renders the item as a `<label>` and
@@ -151,12 +135,10 @@ type EuiKeyPadMenuItemPropsForCheckable = Omit<
   >;
 
 export type EuiKeyPadMenuItemProps = CommonProps &
+  EuiKeyPadMenuItemCommonProps &
   ExclusiveUnion<
     EuiKeyPadMenuItemPropsForCheckable,
-    ExclusiveUnion<
-      EuiKeyPadMenuItemPropsForAnchor,
-      EuiKeyPadMenuItemPropsForButton
-    >
+    EuiKeyPadMenuItemPropsForUncheckable
   >;
 
 export const EuiKeyPadMenuItem: FunctionComponent<EuiKeyPadMenuItemProps> = ({
@@ -183,7 +165,7 @@ export const EuiKeyPadMenuItem: FunctionComponent<EuiKeyPadMenuItemProps> = ({
   ...rest
 }) => {
   const isHrefValid = !href || validateHref(href);
-  const isDisabled = disabled || _isDisabled || !isHrefValid;
+  const isDisabled = !!(disabled || _isDisabled || !isHrefValid);
 
   const euiTheme = useEuiTheme();
   const styles = euiKeyPadMenuItemStyles(euiTheme);
@@ -194,11 +176,6 @@ export const EuiKeyPadMenuItem: FunctionComponent<EuiKeyPadMenuItemProps> = ({
   ];
 
   const classes = classNames('euiKeyPadMenuItem', className);
-
-  let Element: keyof JSX.IntrinsicElements =
-    href && !isDisabled ? 'a' : 'button';
-  if (checkable) Element = 'label';
-  type ElementType = ReactElementType<typeof Element>;
 
   const itemId = useGeneratedHtmlId({ conditionalId: id });
   const childStyles = useMemo(
@@ -266,58 +243,47 @@ export const EuiKeyPadMenuItem: FunctionComponent<EuiKeyPadMenuItemProps> = ({
     );
   }, [betaBadgeLabel, betaBadgeIconType, childStyles]);
 
-  const relObj: {
-    disabled?: boolean;
-    type?: string;
-    href?: string;
-    rel?: string;
-    target?: string;
-    'aria-pressed'?: boolean;
-    'aria-current'?: boolean;
-    htmlFor?: string;
-  } = {};
+  const inner = (
+    <span
+      className="euiKeyPadMenuItem__inner"
+      css={childStyles.euiKeyPadMenuItem__inner}
+    >
+      {checkable ? checkableElement : betaBadge}
+      <span
+        className="euiKeyPadMenuItem__icon"
+        css={childStyles.euiKeyPadMenuItem__icon}
+      >
+        {children}
+      </span>
+      <span
+        className="euiKeyPadMenuItem__label"
+        css={childStyles.euiKeyPadMenuItem__label}
+      >
+        {label}
+      </span>
+    </span>
+  );
 
-  if (href && !isDisabled) {
-    relObj.href = href;
-    relObj.rel = getSecureRelForTarget({ href, target, rel });
-    relObj.target = target;
-    relObj['aria-current'] = isSelected ? isSelected : undefined;
-  } else if (checkable) {
-    relObj.htmlFor = itemId;
-  } else {
-    relObj.disabled = isDisabled;
-    relObj.type = 'button';
-    relObj['aria-pressed'] = isSelected;
-  }
-
-  const button = (
-    <Element
+  const button = checkable ? (
+    <label htmlFor={itemId} className={classes} css={cssStyles}>
+      {inner}
+    </label>
+  ) : (
+    <RenderLinkOrButton
       className={classes}
       css={cssStyles}
-      {...(relObj as ElementType)}
-      {...(rest as ElementType)}
-      // Unable to get past `LegacyRef` conflicts
-      ref={buttonRef as Ref<any>}
+      fallbackElement="button"
+      elementRef={buttonRef}
+      isDisabled={isDisabled}
+      href={href}
+      rel={rel}
+      target={target}
+      linkProps={{ 'aria-current': isSelected }}
+      buttonProps={{ 'aria-pressed': isSelected }}
+      {...rest}
     >
-      <span
-        className="euiKeyPadMenuItem__inner"
-        css={childStyles.euiKeyPadMenuItem__inner}
-      >
-        {checkable ? checkableElement : betaBadge}
-        <span
-          className="euiKeyPadMenuItem__icon"
-          css={childStyles.euiKeyPadMenuItem__icon}
-        >
-          {children}
-        </span>
-        <span
-          className="euiKeyPadMenuItem__label"
-          css={childStyles.euiKeyPadMenuItem__label}
-        >
-          {label}
-        </span>
-      </span>
-    </Element>
+      {inner}
+    </RenderLinkOrButton>
   );
 
   return betaBadgeLabel ? (

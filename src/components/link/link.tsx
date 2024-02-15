@@ -10,6 +10,8 @@ import React, {
   forwardRef,
   AnchorHTMLAttributes,
   ButtonHTMLAttributes,
+  useMemo,
+  useCallback,
 } from 'react';
 import classNames from 'classnames';
 
@@ -67,11 +69,19 @@ export const EuiLink = forwardRef<
     ref
   ) => {
     const euiTheme = useEuiTheme();
-    const styles = euiLinkStyles(euiTheme);
+    const styles = useMemo(() => euiLinkStyles(euiTheme), [euiTheme]);
+    const cssStyles = useCallback(
+      (isDisabled: boolean) => [
+        styles.euiLink,
+        isDisabled ? styles.disabled : styles[color],
+      ],
+      [styles, color]
+    );
 
     return (
       <RenderLinkOrButton
         className={classNames('euiLink', className)}
+        componentCss={cssStyles}
         fallbackElement="a"
         elementRef={ref}
         href={href}
@@ -79,10 +89,6 @@ export const EuiLink = forwardRef<
         rel={rel}
         isDisabled={disabled}
         onClick={onClick}
-        componentCss={(isDisabled) => [
-          styles.euiLink,
-          isDisabled ? styles.disabled : styles[color],
-        ]}
         buttonProps={{ type }}
         linkProps={{
           children: (

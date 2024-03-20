@@ -9,6 +9,7 @@
 import React, { FunctionComponent, ReactNode, useRef } from 'react';
 import classNames from 'classnames';
 
+import { useEuiMemoizedStyles } from '../../../services';
 import {
   EuiRadio,
   EuiRadioProps,
@@ -17,7 +18,7 @@ import {
 } from '../../form';
 import { EuiSplitPanel } from '../../panel';
 import { _EuiSplitPanelOuterProps } from '../../panel/split_panel';
-import { useEuiTheme } from '../../../services';
+
 import { euiCheckableCardStyles } from './checkable_card.styles';
 
 interface EuiCheckableCardBaseProps {
@@ -59,8 +60,7 @@ export const EuiCheckableCard: FunctionComponent<EuiCheckableCardProps> = ({
   hasBorder = true,
   ...rest
 }) => {
-  const euiThemeContext = useEuiTheme();
-  const styles = euiCheckableCardStyles(euiThemeContext);
+  const styles = useEuiMemoizedStyles(euiCheckableCardStyles);
   const baseStyles = [
     styles.euiCheckableCard,
     checked && !disabled && styles.isChecked,

@@ -10,7 +10,7 @@ import React, { FunctionComponent, ReactNode } from 'react';
 
 import { EuiI18n } from '../../i18n';
 import { EuiButton, Props } from '../../button/button';
-import { euiCardSelectStyles } from './card_select.styles';
+import { euiCardSelectStyles as styles } from './card_select.styles';
 
 export type EuiCardSelectProps = Props;
 
@@ -22,9 +22,6 @@ export const EuiCardSelect: FunctionComponent<EuiCardSelectProps> = ({
   children,
   ...rest
 }) => {
-  const styles = euiCardSelectStyles();
-  const baseCSS = [styles.euiCardSelect];
-
   const child = euiCardSelectableText(
     isSelected,
     isDisabled || disabled,
@@ -33,7 +30,7 @@ export const EuiCardSelect: FunctionComponent<EuiCardSelectProps> = ({
 
   return (
     <EuiButton
-      css={baseCSS}
+      css={styles.euiCardSelect}
       color={euiCardSelectableColor(color, isSelected)}
       size="m"
       isDisabled={isDisabled || disabled}

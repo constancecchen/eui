@@ -14,7 +14,7 @@ import React, {
 } from 'react';
 import classNames from 'classnames';
 
-import { useEuiTheme } from '../../../services';
+import { useEuiMemoizedStyles } from '../../../services';
 import { logicalStyles } from '../../../global_styling';
 
 import type { EuiRangeLevel, EuiRangeProps } from './types';
@@ -44,8 +44,7 @@ export const EuiRangeLevels: FunctionComponent<EuiRangeLevelsProps> = ({
   trackWidth,
   ...rest
 }) => {
-  const euiTheme = useEuiTheme();
-  const styles = euiRangeLevelsStyles(euiTheme);
+  const styles = useEuiMemoizedStyles(euiRangeLevelsStyles);
   const cssStyles = [
     styles.euiRangeLevels,
     showTicks && styles.hasTicks,
@@ -74,13 +73,7 @@ const EuiRangeLevelElement: FunctionComponent<{
   max: EuiRangeLevelsProps['max'];
   trackWidth: number;
 }> = ({ level, min, max, trackWidth }) => {
-  const {
-    color,
-    className,
-    min: levelMin,
-    max: levelMax,
-    ...levelRest
-  } = level;
+  const { color, className, min: levelMin, max: levelMax, ...rest } = level;
 
   const isNamedColor = useMemo(() => isNamedLevelColor(color), [color]);
 
@@ -88,7 +81,7 @@ const EuiRangeLevelElement: FunctionComponent<{
     validateLevelIsInRange({ min: levelMin, max: levelMax }, { min, max });
   }, [levelMin, levelMax, min, max]);
 
-  const styles = useMemo(() => {
+  const inlineStyles = useMemo(() => {
     let left = 0;
     let right = 0;
     let leftOffset = 0;
@@ -113,24 +106,16 @@ const EuiRangeLevelElement: FunctionComponent<{
     });
   }, [levelMin, levelMax, min, max, trackWidth, isNamedColor, color]);
 
-  const levelClasses = classNames('euiRangeLevel', className);
+  const classes = classNames('euiRangeLevel', className);
 
-  const euiTheme = useEuiTheme();
-  const levelStyles = euiRangeLevelStyles(euiTheme);
-  const cssLevelStyles = [
-    levelStyles.euiRangeLevel,
-    isNamedColor
-      ? levelStyles[color as EuiRangeLevelColor]
-      : levelStyles.customColor,
+  const styles = useEuiMemoizedStyles(euiRangeLevelStyles);
+  const cssStyles = [
+    styles.euiRangeLevel,
+    isNamedColor ? styles[color as EuiRangeLevelColor] : styles.customColor,
   ];
 
   return (
-    <span
-      style={styles}
-      className={levelClasses}
-      css={cssLevelStyles}
-      {...levelRest}
-    />
+    <span style={inlineStyles} className={classes} css={cssStyles} {...rest} />
   );
 };
 

@@ -15,8 +15,8 @@ import { EuiI18n } from '../i18n';
 import {
   EuiBreakpointSize,
   htmlIdGenerator,
-  withEuiTheme,
-  WithEuiThemeProps,
+  withEuiStylesMemoizer,
+  WithEuiStylesMemoizerProps,
 } from '../../services';
 import { EuiHideFor, EuiShowFor } from '../responsive';
 
@@ -75,7 +75,7 @@ export type EuiSideNavProps<T = {}> = T &
   };
 
 export class EuiSideNavClass<T> extends Component<
-  EuiSideNavProps<T> & WithEuiThemeProps
+  EuiSideNavProps<T> & WithEuiStylesMemoizerProps
 > {
   generateId = htmlIdGenerator('euiSideNav');
 
@@ -168,14 +168,14 @@ export class EuiSideNavClass<T> extends Component<
       truncate,
       heading,
       headingProps,
-      theme,
+      stylesMemoizer,
       ...rest
     } = this.props;
 
     const classes = classNames('euiSideNav', className, {
       'euiSideNav-isOpenMobile': isOpenOnMobile,
     });
-    const styles = euiSideNavMobileStyles(theme);
+    const styles = stylesMemoizer(euiSideNavMobileStyles);
 
     const contentClasses = classNames('euiSideNav__content');
     const sideNavContentId = this.generateId('content');
@@ -264,4 +264,5 @@ export class EuiSideNavClass<T> extends Component<
   }
 }
 
-export const EuiSideNav = withEuiTheme<EuiSideNavProps>(EuiSideNavClass);
+export const EuiSideNav =
+  withEuiStylesMemoizer<EuiSideNavProps>(EuiSideNavClass);

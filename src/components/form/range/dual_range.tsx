@@ -17,13 +17,14 @@ import {
 } from '../../../services';
 import { isWithinRange } from '../../../services/number';
 import { logicalStyles } from '../../../global_styling';
+import { EuiI18n } from '../../i18n';
 import { EuiInputPopover } from '../../popover';
 import { EuiFormControlLayoutDelimited } from '../form_control_layout';
 import { FormContext, FormContextValue } from '../eui_form_context';
 
 import { EuiRangeDraggable } from './range_draggable';
 import { EuiRangeHighlight } from './range_highlight';
-import { EuiRangeInput } from './range_input';
+import { EuiRangeInput, EuiRangeInputSpacer } from './range_input';
 import { EuiRangeLabel } from './range_label';
 import { getLevelColor, euiRangeLevelColor } from './range_levels_colors';
 import { EuiRangeSlider } from './range_slider';
@@ -33,9 +34,7 @@ import { EuiRangeWrapper } from './range_wrapper';
 import { calculateThumbPosition } from './utils';
 import type { EuiDualRangeProps, _SingleRangeValue } from './types';
 
-import { euiRangeStyles } from './range.styles';
 import { euiDualRangeStyles } from './dual_range.styles';
-import { EuiI18n } from '../../i18n';
 
 type ValueMember = _SingleRangeValue['value'];
 
@@ -442,8 +441,6 @@ export class EuiDualRangeClass extends Component<
     const showInputOnly = this.isInPopover;
     const canShowDropdown = showInputOnly && !readOnly && !disabled;
 
-    const rangeStyles = euiRangeStyles(theme);
-
     const minInput = !!showInput ? (
       <EuiRangeInput
         // Overridable props
@@ -557,8 +554,7 @@ export class EuiDualRangeClass extends Component<
     ) : undefined;
 
     const classes = classNames('euiDualRange', className);
-    const dualRangeStyles = euiDualRangeStyles();
-    const cssStyles = [dualRangeStyles.euiDualRange, customCss];
+    const cssStyles = [euiDualRangeStyles.euiDualRange, customCss];
 
     const leftThumbPosition = this.state.rangeWidth
       ? this.calculateThumbPositionStyle(
@@ -606,18 +602,7 @@ export class EuiDualRangeClass extends Component<
         {showInput && !showInputOnly && (
           <>
             {minInput}
-            <div
-              className={
-                showTicks || ticks
-                  ? 'euiRange__slimHorizontalSpacer'
-                  : 'euiRange__horizontalSpacer'
-              }
-              css={
-                showTicks || ticks
-                  ? rangeStyles.euiRange__slimHorizontalSpacer
-                  : rangeStyles.euiRange__horizontalSpacer
-              }
-            />
+            <EuiRangeInputSpacer hasTicks={!!(showTicks || ticks)} />
           </>
         )}
         {showLabels && (
@@ -643,7 +628,7 @@ export class EuiDualRangeClass extends Component<
         >
           <EuiRangeSlider
             className="euiDualRange__slider"
-            css={dualRangeStyles.euiDualRange__slider}
+            css={euiDualRangeStyles.euiDualRange__slider}
             id={id}
             name={name}
             min={min}
@@ -730,18 +715,7 @@ export class EuiDualRangeClass extends Component<
         {showLabels && <EuiRangeLabel disabled={disabled}>{max}</EuiRangeLabel>}
         {showInput && !showInputOnly && (
           <>
-            <div
-              className={
-                showTicks || ticks
-                  ? 'euiRange__slimHorizontalSpacer'
-                  : 'euiRange__horizontalSpacer'
-              }
-              css={
-                showTicks || ticks
-                  ? rangeStyles.euiRange__slimHorizontalSpacer
-                  : rangeStyles.euiRange__horizontalSpacer
-              }
-            />
+            <EuiRangeInputSpacer hasTicks={!!(showTicks || ticks)} />
             {maxInput}
           </>
         )}

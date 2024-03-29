@@ -6,7 +6,6 @@
  * Side Public License, v 1.
  */
 
-import { css } from '@emotion/react';
 import { UseEuiTheme, hexToRgb } from '../../../services';
 import { mathWithUnits } from '../../../global_styling';
 import { euiFormVariables } from '../form.styles';
@@ -140,15 +139,3 @@ export const euiRangeThumbFocus = (
    background-color: ${color || range.focusColor};
   `;
 };
-
-export const euiRangeStyles = ({ euiTheme }: UseEuiTheme) => ({
-  // Base
-  euiRange: css``,
-  hasInput: css``,
-  euiRange__horizontalSpacer: css`
-    inline-size: ${euiTheme.size.base};
-  `,
-  euiRange__slimHorizontalSpacer: css`
-    inline-size: ${euiTheme.size.s};
-  `,
-});

@@ -14,13 +14,20 @@ import React, {
   useRef,
 } from 'react';
 
-import { useEuiTheme, useCombinedRefs } from '../../../services';
+import {
+  useEuiTheme,
+  useEuiMemoizedStyles,
+  useCombinedRefs,
+} from '../../../services';
 import { logicalStyles } from '../../../global_styling';
 import { euiFormVariables } from '../form.styles';
 import { EuiFieldNumber, EuiFieldNumberProps } from '../field_number';
 
 import type { _SingleRangeValue, _SharedRangeInputSide } from './types';
-import { euiRangeInputStyles } from './range_input.styles';
+import {
+  euiRangeInputStyles,
+  euiRangeInputSpacerStyles,
+} from './range_input.styles';
 
 export interface EuiRangeInputProps
   extends Omit<EuiFieldNumberProps, 'max' | 'min' | 'value' | 'step'>,
@@ -45,9 +52,7 @@ export const EuiRangeInput: FunctionComponent<EuiRangeInputProps> = ({
   autoSize = true,
   ...rest
 }) => {
-  const euiTheme = useEuiTheme();
-  const styles = euiRangeInputStyles(euiTheme);
-  const cssStyles = [styles.euiRangeInput];
+  const styles = useEuiMemoizedStyles(euiRangeInputStyles);
 
   // Determine whether an invalid icon is showing, which can come from
   // the underlying EuiFieldNumber's native :invalid state
@@ -61,6 +66,12 @@ export const EuiRangeInput: FunctionComponent<EuiRangeInputProps> = ({
   }, [value, isInvalid]);
 
   // Calculate the auto size width of the input
+  const { controlPadding, controlCompressedPadding } =
+    useEuiMemoizedStyles(euiFormVariables);
+  const {
+    euiTheme: { base: baseSize },
+  } = useEuiTheme();
+
   const widthStyle = useMemo(() => {
     if (!autoSize) return undefined;
 
@@ -70,13 +81,11 @@ export const EuiRangeInput: FunctionComponent<EuiRangeInputProps> = ({
     const inputCharWidth = Math.min(String(value).length, maxChars);
 
     // Calculate the form padding based on `compressed` state
-    const { controlPadding, controlCompressedPadding } =
-      euiFormVariables(euiTheme);
     const inputPadding = compressed ? controlCompressedPadding : controlPadding;
 
     // Calculate the invalid icon (if being displayed), also based on `compressed` state
     const invalidIconWidth = hasInvalidIcon
-      ? euiTheme.euiTheme.base * (compressed ? 1.125 : 1.375) // TODO: DRY this out once EuiFormControlLayoutIcons is converted to Emotion
+      ? baseSize * (compressed ? 1.125 : 1.375) // TODO: DRY this out once EuiFormControlLayoutIcons is converted to Emotion
       : 0;
 
     // Guesstimate a width for the stepper. Note that it's a little wider in FF than it is in Chrome
@@ -85,13 +94,23 @@ export const EuiRangeInput: FunctionComponent<EuiRangeInputProps> = ({
     return logicalStyles({
       width: `calc(${inputPadding} + ${inputCharWidth}ch + ${stepperWidth}em + ${invalidIconWidth}px)`,
     });
-  }, [autoSize, euiTheme, compressed, hasInvalidIcon, min, max, value]);
+  }, [
+    autoSize,
+    baseSize,
+    controlPadding,
+    controlCompressedPadding,
+    compressed,
+    hasInvalidIcon,
+    min,
+    max,
+    value,
+  ]);
 
   return (
     <EuiFieldNumber
       name={name}
       className={`euiRangeInput euiRangeInput--${side}`}
-      css={cssStyles}
+      css={styles.euiRangeInput}
       min={Number(min)}
       max={Number(max)}
       step={step}
@@ -104,6 +123,27 @@ export const EuiRangeInput: FunctionComponent<EuiRangeInputProps> = ({
       style={widthStyle}
       fullWidth={fullWidth}
       {...rest}
+    />
+  );
+};
+
+export const EuiRangeInputSpacer: FunctionComponent<{ hasTicks?: boolean }> = ({
+  hasTicks,
+}) => {
+  const styles = useEuiMemoizedStyles(euiRangeInputSpacerStyles);
+
+  return (
+    <div
+      className={
+        hasTicks
+          ? 'euiRange__slimHorizontalSpacer'
+          : 'euiRange__horizontalSpacer'
+      }
+      css={
+        hasTicks
+          ? styles.euiRange__slimHorizontalSpacer
+          : styles.euiRange__horizontalSpacer
+      }
     />
   );
 };

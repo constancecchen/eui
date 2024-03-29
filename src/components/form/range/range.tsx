@@ -10,17 +10,14 @@ import React, { Component, ReactNode } from 'react';
 import classNames from 'classnames';
 
 import { isWithinRange } from '../../../services/number';
+import { htmlIdGenerator } from '../../../services/';
+import { EuiI18n } from '../../i18n';
 import { EuiInputPopover } from '../../popover';
-import {
-  htmlIdGenerator,
-  withEuiTheme,
-  WithEuiThemeProps,
-} from '../../../services/';
-
 import { FormContext, FormContextValue } from '../eui_form_context';
+
 import { getLevelColor } from './range_levels_colors';
 import { EuiRangeHighlight } from './range_highlight';
-import { EuiRangeInput } from './range_input';
+import { EuiRangeInput, EuiRangeInputSpacer } from './range_input';
 import { EuiRangeLabel } from './range_label';
 import { EuiRangeSlider } from './range_slider';
 import { EuiRangeTooltip } from './range_tooltip';
@@ -29,12 +26,7 @@ import { EuiRangeWrapper } from './range_wrapper';
 
 import type { EuiRangeProps } from './types';
 
-import { euiRangeStyles } from './range.styles';
-import { EuiI18n } from '../../i18n';
-
-export class EuiRangeClass extends Component<
-  EuiRangeProps & WithEuiThemeProps
-> {
+export class EuiRange extends Component<EuiRangeProps> {
   static contextType = FormContext;
 
   static defaultProps = {
@@ -147,7 +139,6 @@ export class EuiRangeClass extends Component<
       value,
       tabIndex,
       isInvalid,
-      theme,
       ...rest
     } = this.props;
 
@@ -180,8 +171,6 @@ export class EuiRangeClass extends Component<
 
     const classes = classNames('euiRange', className);
 
-    const styles = euiRangeStyles(theme);
-    const cssStyles = [styles.euiRange, showInput && styles.hasInput];
     const thumbColor = levels && getLevelColor(levels, Number(value));
 
     const sliderScreenReaderInstructions = (
@@ -194,7 +183,6 @@ export class EuiRangeClass extends Component<
     const theRange = (
       <EuiRangeWrapper
         className={classes}
-        css={cssStyles}
         fullWidth={fullWidth}
         compressed={compressed}
       >
@@ -275,18 +263,7 @@ export class EuiRangeClass extends Component<
         )}
         {showInput && !showInputOnly && (
           <>
-            <div
-              className={
-                showTicks || ticks
-                  ? 'euiRange__slimHorizontalSpacer'
-                  : 'euiRange__horizontalSpacer'
-              }
-              css={
-                showTicks || ticks
-                  ? styles.euiRange__slimHorizontalSpacer
-                  : styles.euiRange__horizontalSpacer
-              }
-            />
+            <EuiRangeInputSpacer hasTicks={!!(showTicks || ticks)} />
             {theInput}
           </>
         )}
@@ -314,5 +291,3 @@ export class EuiRangeClass extends Component<
     return thePopover ? thePopover : theRange;
   }
 }
-
-export const EuiRange = withEuiTheme<EuiRangeProps>(EuiRangeClass);

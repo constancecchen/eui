@@ -27,15 +27,7 @@ export const euiRangeHighlightStyles = (euiThemeContext: UseEuiTheme) => {
     hasTicks: css`
       inset-block-start: ${range.trackTopPositionWithTicks};
     `,
-  };
-};
 
-export const euiRangeHighlightProgressStyles = (
-  euiThemeContext: UseEuiTheme
-) => {
-  const range = euiRangeVariables(euiThemeContext);
-
-  return {
     euiRangeHighlight__progress: css`
       block-size: ${range.highlightHeight};
       border-radius: ${range.trackBorderRadius};
@@ -48,30 +40,15 @@ export const euiRangeHighlightProgressStyles = (
         background-color: ${range.focusColor};
       }
     `,
-  };
-};
 
-export const euiRangeHighlightLevelsWrapperStyles = (
-  euiThemeContext: UseEuiTheme
-) => {
-  const euiRangeVars = euiRangeVariables(euiThemeContext);
-
-  return {
     euiRangeHighlight__levelsWrapper: css`
-      block-size: ${euiRangeVars.trackHeight};
+      block-size: ${range.trackHeight};
       position: relative;
       overflow: hidden;
     `,
-  };
-};
-
-export const euiRangeHighlightLevelsStyles = (euiThemeContext: UseEuiTheme) => {
-  const euiRangeVars = euiRangeVariables(euiThemeContext);
-
-  return {
     euiRangeHighlight__levels: css`
       background: transparent;
-      block-size: ${euiRangeVars.trackHeight};
+      block-size: ${range.trackHeight};
       inset-block-start: 0;
     `,
   };

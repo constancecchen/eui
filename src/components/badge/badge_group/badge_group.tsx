@@ -9,7 +9,7 @@
 import React, { forwardRef, HTMLAttributes, Ref, ReactNode } from 'react';
 import classNames from 'classnames';
 import { CommonProps } from '../../common';
-import { useEuiTheme } from '../../../services';
+import { useEuiMemoizedStyles } from '../../../services';
 
 import { euiBadgeGroupStyles } from './badge_group.styles';
 
@@ -35,9 +35,7 @@ export const EuiBadgeGroup = forwardRef<
     { children, className, gutterSize = 'xs', ...rest },
     ref: Ref<HTMLDivElement>
   ) => {
-    const euiTheme = useEuiTheme();
-
-    const styles = euiBadgeGroupStyles(euiTheme);
+    const styles = useEuiMemoizedStyles(euiBadgeGroupStyles);
     const cssStyles = [styles.euiBadgeGroup, styles[gutterSize]];
 
     const classes = classNames('euiBadgeGroup', className);

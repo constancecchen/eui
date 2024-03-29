@@ -11,14 +11,15 @@ import React, {
   FunctionComponent,
   HTMLAttributes,
   MouseEventHandler,
-  ReactNode,
   Ref,
   useMemo,
+  useCallback,
 } from 'react';
 import classNames from 'classnames';
 import { CommonProps, ExclusiveUnion, PropsOf } from '../common';
 import {
   useEuiTheme,
+  useEuiMemoizedStyles,
   getSecureRelForTarget,
   wcagContrastMin,
 } from '../../services';
@@ -165,58 +166,49 @@ export const EuiBadge: FunctionComponent<EuiBadgeProps> = ({
     }
   }, [color, isNamedColor, style, euiTheme]);
 
-  const styles = euiBadgeStyles(euiTheme);
+  const styles = useEuiMemoizedStyles(euiBadgeStyles);
   const cssStyles = [
     styles.euiBadge,
     isNamedColor && styles[color as BadgeColor],
     (onClick || href) && !iconOnClick && styles.clickable,
     isDisabled && styles.disabled,
   ];
-  const textCssStyles = [
-    styles.text.euiBadge__text,
-    (onClick || href) && !isDisabled && styles.text.clickable,
-  ];
-  const iconCssStyles = [styles.icon.euiBadge__icon, styles.icon[iconSide]];
-  const iconButtonCssStyles = [
-    styles.iconButton.euiBadge__iconButton,
-    styles.iconButton[iconSide],
-  ];
 
   const classes = classNames('euiBadge', className);
 
-  const closeClassNames = classNames(
-    'euiBadge__icon',
-    closeButtonProps?.className
-  );
-
   const Element = href && !isDisabled ? 'a' : 'button';
-  const relObj: {
-    href?: string;
-    target?: string;
-    rel?: string;
-    onClick?:
-      | ((event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void)
-      | ((event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => void);
-  } = {};
+  const relObj = useMemo(() => {
+    if (isDisabled) return;
+    if (href) {
+      return {
+        href,
+        target,
+        rel: getSecureRelForTarget({ href, target, rel }),
+      };
+    }
+  }, [isDisabled, href, target, rel]);
 
-  if (href && !isDisabled) {
-    relObj.href = href;
-    relObj.target = target;
-    relObj.rel = getSecureRelForTarget({ href, target, rel });
-  }
-  if (onClick) {
-    relObj.onClick = onClick;
-  }
+  const hasChildren = !!children;
+  const optionalIcon = useMemo(() => {
+    if (!iconType) return;
 
-  let optionalIcon: ReactNode = null;
-  if (iconType) {
+    const iconCssStyles = [styles.icon.euiBadge__icon, styles.icon[iconSide]];
+    const iconButtonCssStyles = [
+      styles.iconButton.euiBadge__iconButton,
+      styles.iconButton[iconSide],
+    ];
+    const closeClassNames = classNames(
+      'euiBadge__icon',
+      closeButtonProps?.className
+    );
+
     if (iconOnClick) {
       if (!iconOnClickAriaLabel) {
         console.warn(
           'When passing the iconOnClick props to EuiBadge, you must also provide iconOnClickAriaLabel'
         );
       }
-      optionalIcon = (
+      return (
         <button
           type="button"
           className="euiBadge__iconButton"
@@ -236,18 +228,26 @@ export const EuiBadge: FunctionComponent<EuiBadgeProps> = ({
           />
         </button>
       );
-    } else {
-      optionalIcon = (
-        <EuiIcon
-          type={iconType}
-          size={children ? 's' : 'm'}
-          className="euiBadge__icon"
-          css={iconCssStyles}
-          color="inherit" // forces the icon to inherit its parent color
-        />
-      );
     }
-  }
+    return (
+      <EuiIcon
+        type={iconType}
+        size={hasChildren ? 's' : 'm'}
+        className="euiBadge__icon"
+        css={iconCssStyles}
+        color="inherit" // forces the icon to inherit its parent color
+      />
+    );
+  }, [
+    iconType,
+    iconSide,
+    iconOnClick,
+    iconOnClickAriaLabel,
+    closeButtonProps,
+    isDisabled,
+    hasChildren,
+    styles,
+  ]);
 
   if (onClick && !onClickAriaLabel) {
     console.warn(
@@ -255,23 +255,37 @@ export const EuiBadge: FunctionComponent<EuiBadgeProps> = ({
     );
   }
 
-  const content = (
-    <span className="euiBadge__content" css={styles.euiBadge__content}>
-      {iconSide === 'left' && optionalIcon}
-      {children && (
+  const BadgeContent = useCallback(
+    ({ children }: Pick<EuiBadgeProps, 'children'>) => (
+      <span className="euiBadge__content" css={styles.euiBadge__content}>
+        {iconSide === 'left' && optionalIcon}
+        {children}
+        {iconSide === 'right' && optionalIcon}
+      </span>
+    ),
+    [styles, iconSide, optionalIcon]
+  );
+
+  const textIsClickable = !!(onClick || href) && !isDisabled;
+  const BadgeTextContent = useCallback(
+    ({ children }: Pick<EuiBadgeProps, 'children'>) => {
+      const textCssStyles = [
+        styles.text.euiBadge__text,
+        textIsClickable && styles.text.clickable,
+      ];
+      return children ? (
         <span className="euiBadge__text" css={textCssStyles}>
           {children}
         </span>
-      )}
-      {iconSide === 'right' && optionalIcon}
-    </span>
+      ) : null;
+    },
+    [styles, textIsClickable]
   );
 
   if (iconOnClick) {
     return onClick || href ? (
       <span className={classes} css={cssStyles} style={customColorStyles}>
-        <span className="euiBadge__content" css={styles.euiBadge__content}>
-          {iconSide === 'left' && optionalIcon}
+        <BadgeContent>
           <EuiInnerText>
             {(ref, innerText) => (
               <Element
@@ -281,15 +295,15 @@ export const EuiBadge: FunctionComponent<EuiBadgeProps> = ({
                 aria-label={onClickAriaLabel}
                 ref={ref}
                 title={innerText}
-                {...(relObj as HTMLAttributes<HTMLElement>)}
+                onClick={onClick as MouseEventHandler}
+                {...relObj}
                 {...(rest as HTMLAttributes<HTMLElement>)}
               >
                 {children}
               </Element>
             )}
           </EuiInnerText>
-          {iconSide === 'right' && optionalIcon}
-        </span>
+        </BadgeContent>
       </span>
     ) : (
       <EuiInnerText>
@@ -302,7 +316,9 @@ export const EuiBadge: FunctionComponent<EuiBadgeProps> = ({
             title={innerText}
             {...rest}
           >
-            {content}
+            <BadgeContent>
+              <BadgeTextContent>{children}</BadgeTextContent>
+            </BadgeContent>
           </span>
         )}
       </EuiInnerText>
@@ -322,7 +338,9 @@ export const EuiBadge: FunctionComponent<EuiBadgeProps> = ({
             {...(relObj as HTMLAttributes<HTMLElement>)}
             {...(rest as HTMLAttributes<HTMLElement>)}
           >
-            {content}
+            <BadgeContent>
+              <BadgeTextContent>{children}</BadgeTextContent>
+            </BadgeContent>
           </Element>
         )}
       </EuiInnerText>
@@ -339,7 +357,9 @@ export const EuiBadge: FunctionComponent<EuiBadgeProps> = ({
             title={innerText}
             {...rest}
           >
-            {content}
+            <BadgeContent>
+              <BadgeTextContent>{children}</BadgeTextContent>
+            </BadgeContent>
           </span>
         )}
       </EuiInnerText>

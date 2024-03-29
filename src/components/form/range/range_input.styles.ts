@@ -20,3 +20,12 @@ export const euiRangeInputStyles = ({ euiTheme }: UseEuiTheme) => ({
     }
   `,
 });
+
+export const euiRangeInputSpacerStyles = ({ euiTheme }: UseEuiTheme) => ({
+  euiRange__horizontalSpacer: css`
+    inline-size: ${euiTheme.size.base};
+  `,
+  euiRange__slimHorizontalSpacer: css`
+    inline-size: ${euiTheme.size.s};
+  `,
+});

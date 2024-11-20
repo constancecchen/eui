@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`global utility styles generates static global styles 1`] = `
+exports[`utility classes styles generates static global classes 1`] = `
 ".euiScreenReaderOnly{
   /* Take the element out of the layout */
   position: absolute;
@@ -347,5 +347,5 @@ exports[`global utility styles generates static global styles 1`] = `
         @media only screen and (max-width: 574px) {
           display: flex !important;
         }
-      };;;label:globalStyles;"
+      };;;label:utilityClasses;"
 `;

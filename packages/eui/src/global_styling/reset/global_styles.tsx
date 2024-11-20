@@ -11,13 +11,12 @@ import { Global, css } from '@emotion/react';
 import { euiFocusRing, euiScrollBarStyles } from '../mixins';
 import { logicalCSS } from '../functions';
 import { shade, tint, transparentize } from '../../services/color';
-import { useEuiTheme } from '../../services/theme';
+import { useEuiMemoizedStyles, UseEuiTheme } from '../../services/theme';
 import { resetStyles as reset } from './reset';
 
 export interface EuiGlobalStylesProps {}
 
-export const EuiGlobalStyles = ({}: EuiGlobalStylesProps) => {
-  const euiThemeContext = useEuiTheme();
+const globalStyles = (euiThemeContext: UseEuiTheme) => {
   const { euiTheme, colorMode } = euiThemeContext;
   const { base, colors, font } = euiTheme;
 
@@ -50,7 +49,7 @@ export const EuiGlobalStyles = ({}: EuiGlobalStylesProps) => {
   /**
    * Final styles
    */
-  const styles = css`
+  return css`
     ${reset}
 
     html {
@@ -124,6 +123,8 @@ export const EuiGlobalStyles = ({}: EuiGlobalStylesProps) => {
       position: relative;
     }
   `;
+};
 
-  return <Global styles={styles} />;
+export const EuiGlobalStyles = ({}: EuiGlobalStylesProps) => {
+  return <Global styles={useEuiMemoizedStyles(globalStyles)} />;
 };

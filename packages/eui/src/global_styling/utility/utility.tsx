@@ -9,7 +9,7 @@
 import React from 'react';
 import { Global, css } from '@emotion/react';
 
-import { useEuiTheme, UseEuiTheme } from '../../services/theme/hooks';
+import { useEuiMemoizedStyles, UseEuiTheme } from '../../services/theme';
 import { euiScreenReaderOnly } from '../../components/accessibility/screen_reader_only/screen_reader_only.styles';
 import {
   euiFullHeight,
@@ -25,7 +25,7 @@ import {
 } from '../mixins';
 import { logicalCSS } from '../functions';
 
-export const globalStyles = (euiThemeContext: UseEuiTheme) => {
+export const utilityClasses = (euiThemeContext: UseEuiTheme) => {
   return css`
     // Accessibility
     .euiScreenReaderOnly {
@@ -152,6 +152,5 @@ export const globalStyles = (euiThemeContext: UseEuiTheme) => {
   `;
 };
 export const EuiUtilityClasses = () => {
-  const euiTheme = useEuiTheme();
-  return <Global styles={globalStyles(euiTheme)} />;
+  return <Global styles={useEuiMemoizedStyles(utilityClasses)} />;
 };
